@@ -84,10 +84,14 @@ export class World implements VoxelSource {
     if (chunk) chunk.dirty = true
   }
 
-  /** Highest solid block at a column, for spawning things on the surface. */
+  /**
+   * Highest walkable block at a column, for spawning things on the surface.
+   * Leaves are skipped so creatures appear under trees, not on canopies.
+   */
   surfaceY(wx: number, wz: number): number {
     for (let y = WORLD_HEIGHT - 1; y > 0; y--) {
-      if (isSolid(this.getBlock(wx, y, wz))) return y
+      const id = this.getBlock(wx, y, wz)
+      if (isSolid(id) && id !== Block.LEAVES) return y
     }
     return SEA_LEVEL
   }
@@ -108,17 +112,6 @@ export class World implements VoxelSource {
     this.unloadFar(ccx, ccz)
   }
 
-  /** Synchronously generate + mesh everything around a position (world start). */
-  preload(px: number, pz: number): void {
-    const ccx = Math.floor(px / CHUNK_SIZE)
-    const ccz = Math.floor(pz / CHUNK_SIZE)
-    for (let i = 0; i < 500; i++) {
-      const generated = this.generateMissing(ccx, ccz, 64)
-      const meshed = this.remeshDirty(ccx, ccz, 64)
-      if (!generated && !meshed) break
-    }
-  }
-
   private generateMissing(ccx: number, ccz: number, budget = GEN_BUDGET_PER_FRAME): boolean {
     const radius = VIEW_DISTANCE + DATA_MARGIN
     const missing: Array<{ cx: number; cz: number; d: number }> = []
@@ -137,11 +130,13 @@ export class World implements VoxelSource {
       this.terrain.fillChunk(chunk)
       this.onChunkGenerated?.(chunk)
       this.chunks.set(Chunk.key(m.cx, m.cz), chunk)
-      // Freshly generated data affects neighbor border faces.
-      this.markDirty(m.cx - 1, m.cz)
-      this.markDirty(m.cx + 1, m.cz)
-      this.markDirty(m.cx, m.cz - 1)
-      this.markDirty(m.cx, m.cz + 1)
+      // Fresh data affects neighbor border faces — and corner-vertex AO
+      // samples diagonally, so diagonal neighbors need a remesh too.
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          if (dx !== 0 || dz !== 0) this.markDirty(m.cx + dx, m.cz + dz)
+        }
+      }
     }
     return true
   }
