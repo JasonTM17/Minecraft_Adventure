@@ -1,8 +1,11 @@
 import * as THREE from 'three'
 import './style.css'
 import { CombatSystem } from './combat/combat-system'
+import { FireZones } from './combat/fire-zones'
 import { Projectiles } from './combat/projectiles'
 import { Game } from './core/game'
+import { CrystalManager } from './entities/crystal-towers'
+import { DragonBoss } from './entities/dragon-boss'
 import { InputManager } from './core/input-manager'
 import { ParticleEffects } from './effects/particles'
 import { Sky } from './effects/sky'
@@ -58,6 +61,12 @@ const mobContext: MobContext = {
 
 const heldItem = new HeldItemView(game.camera, inventory, atlas.texture)
 
+const fireZones = new FireZones(world, effects)
+const crystals = new CrystalManager(game.scene, effects)
+const dragon = new DragonBoss(game.scene, atlas.texture, projectiles, fireZones, effects, crystals)
+combat.hittables.push(dragon, ...crystals.crystals)
+projectiles.onFireballExplode = (x, _y, z) => fireZones.igniteBurst(x, z, 4, 5)
+
 const crosshair = document.createElement('div')
 crosshair.className = 'crosshair'
 ui.appendChild(crosshair)
@@ -84,6 +93,10 @@ game.onUpdate((dt) => {
   }
   const wheel = input.consumeWheel()
   if (wheel !== 0) inventory.scroll(wheel)
+
+  dragon.update(dt, player)
+  crystals.update(dt, dragon.engaged ? dragon.position : null)
+  fireZones.update(dt, player, mobContext.damagePlayer)
 
   heldItem.update(dt, player, combat, interaction)
   world.update(player.position.x, player.position.z)
