@@ -30,10 +30,6 @@ export function lairTowerSpots(): TowerSpot[] {
   return spots
 }
 
-export function isNearLair(wx: number, wz: number, margin = 0): boolean {
-  return distance2D(wx, wz, LAIR_CENTER_X, LAIR_CENTER_Z) < LAIR_RADIUS + margin
-}
-
 /**
  * Post-process a freshly generated chunk: carve the obsidian arena, rim wall,
  * perch mound and crystal towers into any chunk that intersects the lair.

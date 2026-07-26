@@ -11,8 +11,4 @@ export class GameStateMachine {
     this.state = state
     this.onChange?.(state, previous)
   }
-
-  get playing(): boolean {
-    return this.state === 'playing'
-  }
 }

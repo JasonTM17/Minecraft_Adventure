@@ -12,14 +12,6 @@ export function smoothstep(t: number): number {
   return t * t * (3 - 2 * t)
 }
 
-/** Shortest-path angle interpolation, keeps mobs turning naturally across the ±PI seam. */
-export function lerpAngle(a: number, b: number, t: number): number {
-  let d = (b - a) % (Math.PI * 2)
-  if (d > Math.PI) d -= Math.PI * 2
-  if (d < -Math.PI) d += Math.PI * 2
-  return a + d * t
-}
-
 /** Fast seedable PRNG (Mulberry32). Returns floats in [0, 1). */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0
@@ -46,12 +38,4 @@ export function distance2D(x1: number, z1: number, x2: number, z2: number): numb
   const dx = x2 - x1
   const dz = z2 - z1
   return Math.sqrt(dx * dx + dz * dz)
-}
-
-export function randRange(rng: () => number, min: number, max: number): number {
-  return min + rng() * (max - min)
-}
-
-export function pick<T>(rng: () => number, items: readonly T[]): T {
-  return items[Math.floor(rng() * items.length)] as T
 }

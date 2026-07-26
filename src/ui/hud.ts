@@ -145,9 +145,4 @@ export class Hud {
       : 0
     this.vignette.style.opacity = String(Math.min(1, this.vignetteStrength * 0.85 + lowHp))
   }
-
-  /** Refresh hotbar icons on next update (e.g. after language/screen change). */
-  markHotbarDirty(): void {
-    this.hotbarDirty = true
-  }
 }
