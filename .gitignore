@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Private planning and local tooling (never committed)
+plans/
+.claude/
+.claude-private/
+.private/
+.codex/
+.opencode/
+opencode.json
+CLAUDE.md
+AGENTS.md
+*.local.md
+*.private.md
+PLAN*.md
+NOTES*.md
+notes*.md
+TODO*.md
+todo*.md
+DRAFT*.md
+draft*.md
+ROADMAP*.md
+roadmap*.md
