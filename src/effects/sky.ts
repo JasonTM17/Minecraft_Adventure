@@ -37,8 +37,11 @@ export class Sky {
   private readonly starsMaterial: THREE.PointsMaterial
   private readonly skyColor = new THREE.Color()
   private readonly fogColor = new THREE.Color()
+  /** The one Color instance installed as scene.background; never shared. */
+  private readonly backgroundColor = new THREE.Color()
 
   constructor(private readonly scene: THREE.Scene) {
+    scene.background = this.backgroundColor
     this.sunLight = new THREE.DirectionalLight(0xfff4e0, 2)
     this.ambientLight = new THREE.AmbientLight(0xb8c8e8, 1.2)
     scene.add(this.sunLight, this.sunLight.target, this.ambientLight)
@@ -142,16 +145,14 @@ export class Sky {
 
     const fog = this.scene.fog as THREE.Fog | null
     if (eyeInWater) {
-      this.scene.background = UNDERWATER_FOG
+      this.backgroundColor.copy(UNDERWATER_FOG)
       if (fog) {
         fog.color.copy(UNDERWATER_FOG)
         fog.near = 2
         fog.far = 24
       }
     } else {
-      const bg = this.scene.background as THREE.Color | null
-      if (bg) bg.copy(this.skyColor)
-      else this.scene.background = this.skyColor.clone()
+      this.backgroundColor.copy(this.skyColor)
       if (fog) {
         fog.color.copy(this.fogColor)
         fog.near = 60
