@@ -43,3 +43,242 @@ body {
     linear-gradient(#fff, #fff) center / 18px 2px no-repeat;
   mix-blend-mode: difference;
 }
+
+/* ---------- Full-screen overlays ---------- */
+
+.screens {
+  position: absolute;
+  inset: 0;
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: rgba(8, 10, 22, 0.82);
+  color: #eee;
+  text-align: center;
+}
+
+.game-title {
+  font-size: clamp(40px, 7vw, 76px);
+  letter-spacing: 4px;
+  color: #7ec850;
+  text-shadow: 3px 3px 0 #2c4a1c, 6px 6px 0 rgba(0, 0, 0, 0.5);
+  line-height: 1.05;
+}
+
+.game-title span {
+  display: block;
+  font-size: 0.52em;
+  color: #f0a838;
+  text-shadow: 3px 3px 0 #6a4a10;
+}
+
+.tagline {
+  font-size: 17px;
+  color: #c9d4e8;
+  line-height: 1.5;
+}
+
+.controls-table {
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #aab6cc;
+}
+
+.controls-table td {
+  padding: 2px 12px;
+  text-align: left;
+}
+
+.controls-table td:first-child {
+  color: #f0d060;
+  text-align: right;
+  font-weight: 600;
+}
+
+.screen button {
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 12px 42px;
+  border: 3px solid #1c1c1c;
+  border-radius: 4px;
+  color: #fff;
+  background: linear-gradient(#7ec850, #558834);
+  box-shadow: 0 4px 0 #2c4a1c;
+  font-family: inherit;
+}
+
+.screen button:hover {
+  filter: brightness(1.12);
+}
+
+.screen button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #2c4a1c;
+}
+
+.death-title {
+  font-size: 54px;
+  color: #e04040;
+  text-shadow: 3px 3px 0 #501010;
+}
+
+.victory-title {
+  font-size: 48px;
+  color: #f0c040;
+  text-shadow: 3px 3px 0 #6a4a10;
+}
+
+.death-cause,
+.victory-stats {
+  color: #aab6cc;
+  font-size: 16px;
+}
+
+.screen h2 {
+  font-size: 42px;
+}
+
+/* ---------- HUD ---------- */
+
+.hud {
+  position: absolute;
+  inset: 0;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(200, 20, 20, 0.55) 100%);
+  opacity: 0;
+  transition: opacity 0.1s linear;
+}
+
+.hearts {
+  position: absolute;
+  left: 50%;
+  bottom: 76px;
+  transform: translateX(-186px);
+  display: flex;
+  gap: 2px;
+}
+
+.heart {
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  position: relative;
+}
+
+.heart-fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+.hotbar {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  background: rgba(10, 10, 14, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+}
+
+.hotbar-slot {
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.hotbar-slot.selected {
+  border-color: #fff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.hotbar-icon {
+  position: absolute;
+  inset: 6px;
+  image-rendering: pixelated;
+}
+
+.hotbar-count {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.boss-bar {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, 70vw);
+  height: 22px;
+  background: rgba(20, 8, 30, 0.7);
+  border: 2px solid #b060d0;
+  border-radius: 10px;
+}
+
+.boss-name {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #e8a0f8;
+  font-size: 15px;
+  font-weight: 700;
+  text-shadow: 1px 1px 0 #000;
+  white-space: nowrap;
+}
+
+.boss-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 7px;
+  background: linear-gradient(#f070d0, #a030a0);
+  transition: width 0.2s ease-out;
+}
+
+.quest-banner {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(10, 10, 14, 0.55);
+  border-left: 4px solid #f0c040;
+  border-radius: 4px;
+  color: #ffe9a8;
+  font-size: 15px;
+  font-weight: 600;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.compass {
+  display: inline-block;
+  color: #f05030;
+  font-size: 20px;
+}
