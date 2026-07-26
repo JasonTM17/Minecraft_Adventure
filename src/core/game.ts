@@ -1,4 +1,8 @@
 import * as THREE from 'three'
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 /**
  * Game shell: owns the renderer, scene, camera and the frame loop.
@@ -8,6 +12,8 @@ export class Game {
   readonly renderer: THREE.WebGLRenderer
   readonly scene: THREE.Scene
   readonly camera: THREE.PerspectiveCamera
+  private readonly composer: EffectComposer
+  private readonly bloomPass: UnrealBloomPass
   /** Multiplies dt for gameplay systems; 0 while paused. */
   timeScale = 1
   /** Seconds since start, unaffected by pause (drives menus/sky shimmer). */
@@ -24,6 +30,10 @@ export class Game {
     })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.setSize(window.innerWidth, window.innerHeight)
+    // Filmic tone mapping: keeps bright fire/sun from clipping to flat white
+    // and gives the bloom pass a real HDR range to threshold against.
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping
+    this.renderer.toneMappingExposure = 1.05
     mount.appendChild(this.renderer.domElement)
 
     this.scene = new THREE.Scene()
@@ -36,10 +46,25 @@ export class Game {
     // Parent the camera so camera-attached objects (held item) render.
     this.scene.add(this.camera)
 
+    this.composer = new EffectComposer(this.renderer)
+    this.composer.addPass(new RenderPass(this.scene, this.camera))
+    // Threshold sits above lit terrain (~1.4 linear at noon) so only truly
+    // bright sources bloom: sun disk, flames, explosions, crystal beams.
+    this.bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.55,
+      0.4,
+      1.45,
+    )
+    this.composer.addPass(this.bloomPass)
+    // Tone mapping + sRGB conversion happen here when post-processing.
+    this.composer.addPass(new OutputPass())
+
     window.addEventListener('resize', () => {
       this.camera.aspect = window.innerWidth / window.innerHeight
       this.camera.updateProjectionMatrix()
       this.renderer.setSize(window.innerWidth, window.innerHeight)
+      this.composer.setSize(window.innerWidth, window.innerHeight)
     })
   }
 
@@ -70,6 +95,6 @@ export class Game {
     }
     for (const fn of this.alwaysUpdatables) fn(rawDt)
 
-    this.renderer.render(this.scene, this.camera)
+    this.composer.render()
   }
 }

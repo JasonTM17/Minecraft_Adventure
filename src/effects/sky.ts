@@ -13,14 +13,15 @@ interface SkyKey {
 }
 
 // Midnight → sunrise → noon → sunset → midnight.
+// Ambient floors account for ACES tone mapping crushing night midtones.
 const KEYS: readonly SkyKey[] = [
-  { t: 0.0, sky: 0x070b1e, fog: 0x0a1026, ambient: 0.5, sun: 0.0 },
-  { t: 0.22, sky: 0x11172e, fog: 0x1a2036, ambient: 0.55, sun: 0.0 },
-  { t: 0.27, sky: 0x9db4d8, fog: 0xe8a06a, ambient: 0.9, sun: 0.9 },
+  { t: 0.0, sky: 0x070b1e, fog: 0x0a1026, ambient: 0.68, sun: 0.0 },
+  { t: 0.22, sky: 0x11172e, fog: 0x1a2036, ambient: 0.72, sun: 0.0 },
+  { t: 0.27, sky: 0x9db4d8, fog: 0xe8a06a, ambient: 0.95, sun: 0.9 },
   { t: 0.5, sky: 0x87b8e8, fog: 0xc4d8ee, ambient: 1.4, sun: 2.0 },
-  { t: 0.73, sky: 0x8d7ab8, fog: 0xe87a4a, ambient: 0.9, sun: 0.8 },
-  { t: 0.78, sky: 0x11172e, fog: 0x1a2036, ambient: 0.55, sun: 0.0 },
-  { t: 1.0, sky: 0x070b1e, fog: 0x0a1026, ambient: 0.5, sun: 0.0 },
+  { t: 0.73, sky: 0x8d7ab8, fog: 0xe87a4a, ambient: 0.95, sun: 0.8 },
+  { t: 0.78, sky: 0x11172e, fog: 0x1a2036, ambient: 0.72, sun: 0.0 },
+  { t: 1.0, sky: 0x070b1e, fog: 0x0a1026, ambient: 0.68, sun: 0.0 },
 ]
 
 const UNDERWATER_FOG = new THREE.Color(0x1a3a7a)
@@ -46,13 +47,20 @@ export class Sky {
     this.ambientLight = new THREE.AmbientLight(0xb8c8e8, 1.2)
     scene.add(this.sunLight, this.sunLight.target, this.ambientLight)
 
+    // HDR-bright discs so the bloom pass picks them up past its threshold.
     this.sunMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(42, 42),
-      new THREE.MeshBasicMaterial({ color: 0xffe9a8, fog: false }),
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0xffe9a8).multiplyScalar(2.4),
+        fog: false,
+      }),
     )
     this.moonMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 30),
-      new THREE.MeshBasicMaterial({ color: 0xdfe6f2, fog: false }),
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(0xdfe6f2).multiplyScalar(1.4),
+        fog: false,
+      }),
     )
     scene.add(this.sunMesh, this.moonMesh)
 
