@@ -18,6 +18,8 @@ export class QuestManager {
     { id: 'dragon', title: 'Slay the Fire Dragon', target: 1, progress: 0 },
   ]
   private index = 0
+  /** Crystals can be sniped before the crystal quest activates; keep count. */
+  private crystalsDown = 0
   completed = false
   onAdvance: ((quest: Quest | null) => void) | null = null
   onCompleted: (() => void) | null = null
@@ -55,6 +57,17 @@ export class QuestManager {
         this.onCompleted?.()
       }
       this.onAdvance?.(this.current)
+      // The newly activated quest may already be satisfied (early crystal kills).
+      this.syncCrystals()
+    }
+  }
+
+  private syncCrystals(): void {
+    const quest = this.current
+    if (!quest || quest.id !== 'crystals') return
+    if (this.crystalsDown > quest.progress) {
+      const gained = this.crystalsDown - quest.progress
+      this.bump('crystals', gained)
     }
   }
 
@@ -63,6 +76,7 @@ export class QuestManager {
   }
 
   crystalDestroyed(): void {
+    this.crystalsDown++
     this.bump('crystals')
   }
 
