@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { lerp, mulberry32 } from '../core/math-utils'
+import { lerp } from '../core/math-utils'
+import { SkyDome, buildTwinkleStars } from './sky-dome'
 
 /** Full day-night cycle length in real seconds. */
 export const DAY_LENGTH = 480
@@ -35,7 +36,8 @@ export class Sky {
   private readonly sunMesh: THREE.Mesh
   private readonly moonMesh: THREE.Mesh
   private readonly stars: THREE.Points
-  private readonly starsMaterial: THREE.PointsMaterial
+  private readonly starUniforms: { uTime: { value: number }; uOpacity: { value: number } }
+  private readonly dome: SkyDome
   private readonly skyColor = new THREE.Color()
   private readonly fogColor = new THREE.Color()
   /** The one Color instance installed as scene.background; never shared. */
@@ -64,28 +66,12 @@ export class Sky {
     )
     scene.add(this.sunMesh, this.moonMesh)
 
-    const starRng = mulberry32(99)
-    const starPositions: number[] = []
-    for (let i = 0; i < 420; i++) {
-      const v = new THREE.Vector3(
-        starRng() * 2 - 1,
-        starRng(),
-        starRng() * 2 - 1,
-      ).normalize().multiplyScalar(430)
-      starPositions.push(v.x, v.y, v.z)
-    }
-    const starGeometry = new THREE.BufferGeometry()
-    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3))
-    this.starsMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 1.6,
-      sizeAttenuation: false,
-      transparent: true,
-      opacity: 0,
-      fog: false,
-    })
-    this.stars = new THREE.Points(starGeometry, this.starsMaterial)
+    const stars = buildTwinkleStars(99)
+    this.stars = stars.points
+    this.starUniforms = stars.uniforms
     scene.add(this.stars)
+
+    this.dome = new SkyDome(scene)
   }
 
   /** Sun elevation in [-1, 1]; positive during the day. */
@@ -149,10 +135,18 @@ export class Sky {
     this.sunLight.intensity = this.sample((k) => k.sun)
 
     const nightFactor = THREE.MathUtils.clamp(-this.sunElevation * 4, 0, 1)
-    this.starsMaterial.opacity = nightFactor * 0.9
+    this.starUniforms.uTime.value += dt
+    this.starUniforms.uOpacity.value = nightFactor * 0.9
+
+    // Sun glow flares warm and wide while the sun sits near the horizon.
+    const horizonProximity = 1 - Math.min(1, Math.abs(this.sunElevation) * 2.2)
+    const dayFactor = THREE.MathUtils.clamp(this.sunElevation * 4 + 0.6, 0, 1)
+    const glowStrength = dayFactor * (0.7 + horizonProximity * 1.8)
+    this.dome.update(dt, focus, sunDir, this.skyColor, this.fogColor, glowStrength, this.lightLevel())
 
     const fog = this.scene.fog as THREE.Fog | null
     if (eyeInWater) {
+      this.dome.setVisible(false)
       this.backgroundColor.copy(UNDERWATER_FOG)
       if (fog) {
         fog.color.copy(UNDERWATER_FOG)
@@ -160,6 +154,7 @@ export class Sky {
         fog.far = 24
       }
     } else {
+      this.dome.setVisible(true)
       this.backgroundColor.copy(this.skyColor)
       if (fog) {
         fog.color.copy(this.fogColor)
