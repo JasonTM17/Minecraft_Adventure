@@ -51,6 +51,13 @@ npm run build      # typecheck (tsc strict) + vite build → dist/
 npm run preview
 ```
 
+Tests and lint:
+
+```bash
+npm test           # vitest unit suite (noise, physics, quests, edit store)
+npm run lint       # oxlint, warnings are errors
+```
+
 ### Docker
 
 ```bash
