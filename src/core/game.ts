@@ -48,13 +48,14 @@ export class Game {
 
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.camera))
-    // Threshold sits above lit terrain (~1.4 linear at noon) so only truly
-    // bright sources bloom: sun disk, flames, explosions, crystal beams.
+    // Threshold sits above even noon snowfields (~2.5 linear — brightest
+    // albedo × ambient + sun) so terrain never hazes; genuine emitters (sun
+    // disc, flames, explosions, crystal cores) carry HDR colors well past it.
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
       0.55,
       0.4,
-      1.45,
+      2.6,
     )
     this.composer.addPass(this.bloomPass)
     // Tone mapping + sRGB conversion happen here when post-processing.

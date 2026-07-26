@@ -71,7 +71,8 @@ export class Projectiles {
   spawnFireball(origin: THREE.Vector3, dir: THREE.Vector3, speed = 16): void {
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(0.35, 8, 8),
-      new THREE.MeshBasicMaterial({ color: 0xff8a2a }),
+      // HDR-hot core so the fireball itself blooms, not just its trail.
+      new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff8a2a).multiplyScalar(3.2) }),
     )
     mesh.position.copy(origin)
     this.scene.add(mesh)

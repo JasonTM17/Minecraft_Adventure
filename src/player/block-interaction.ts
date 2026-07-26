@@ -140,6 +140,12 @@ export class BlockInteraction {
     return this.breakKey !== ''
   }
 
+  /** Clear mining feedback when gameplay is interrupted (death, victory). */
+  cancel(): void {
+    this.resetBreaking()
+    this.highlight.visible = false
+  }
+
   update(dt: number): void {
     const dir = this.camera.getWorldDirection(new THREE.Vector3())
     const hit = raycastVoxel(this.world, this.player.eyePosition, dir, REACH)

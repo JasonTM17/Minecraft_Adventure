@@ -152,7 +152,9 @@ export class SkyDome {
     glowStrength: number,
     lightLevel: number,
   ): void {
-    this.drift += dt * CLOUD_DRIFT
+    // One CLOUD_TILE of drift is exactly one texture repeat — wrapping there
+    // is seamless and keeps the float32 offset precise forever.
+    this.drift = (this.drift + dt * CLOUD_DRIFT) % CLOUD_TILE
     this.mesh.position.copy(focus)
     this.uniforms.uZenith.value.copy(zenith)
     this.uniforms.uHorizon.value.copy(horizon)

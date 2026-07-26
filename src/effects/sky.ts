@@ -53,14 +53,14 @@ export class Sky {
     this.sunMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(42, 42),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xffe9a8).multiplyScalar(2.4),
+        color: new THREE.Color(0xffe9a8).multiplyScalar(3.4),
         fog: false,
       }),
     )
     this.moonMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 30),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color(0xdfe6f2).multiplyScalar(1.4),
+        color: new THREE.Color(0xdfe6f2).multiplyScalar(2.8),
         fog: false,
       }),
     )
@@ -135,7 +135,9 @@ export class Sky {
     this.sunLight.intensity = this.sample((k) => k.sun)
 
     const nightFactor = THREE.MathUtils.clamp(-this.sunElevation * 4, 0, 1)
-    this.starUniforms.uTime.value += dt
+    // Wrap at a common period of the twinkle frequencies (multiples of 0.1)
+    // so float32 sin() keeps precision over multi-hour sessions.
+    this.starUniforms.uTime.value = (this.starUniforms.uTime.value + dt) % (Math.PI * 20)
     this.starUniforms.uOpacity.value = nightFactor * 0.9
 
     // Sun glow flares warm and wide while the sun sits near the horizon.

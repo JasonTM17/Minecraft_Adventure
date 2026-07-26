@@ -1,7 +1,10 @@
-import { CHUNK_SIZE, type Chunk } from './chunk'
+import { Block } from './block-registry'
+import { CHUNK_SIZE, WORLD_HEIGHT, type Chunk } from './chunk'
 
 /** Beyond this many total edits the oldest-touched chunks are dropped. */
 const MAX_EDITS = 50_000
+const VOXELS_PER_CHUNK = CHUNK_SIZE * WORLD_HEIGHT * CHUNK_SIZE
+const MAX_BLOCK_ID = Block.BEDROCK
 
 /**
  * Diff of player block edits over generated terrain, keyed by chunk. Chunks
@@ -86,7 +89,11 @@ export class BlockEditStore {
       for (const [key, entries] of payload) {
         const chunkEdits = new Map<number, number>()
         for (const [index, id] of entries) {
-          if (typeof index === 'number' && typeof id === 'number') {
+          // Corrupt entries must not smuggle out-of-range voxels or ids in.
+          if (
+            Number.isInteger(index) && index >= 0 && index < VOXELS_PER_CHUNK &&
+            Number.isInteger(id) && id >= 0 && id <= MAX_BLOCK_ID
+          ) {
             chunkEdits.set(index, id)
           }
         }

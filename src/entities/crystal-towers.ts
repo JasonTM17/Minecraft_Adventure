@@ -28,7 +28,7 @@ export class CrystalTower implements Hittable {
   ) {
     this.position = new THREE.Vector3(x, y, z)
     // HDR-bright magenta so the crystal core and beam bloom at night.
-    this.baseColor = new THREE.Color(0xe86af0).multiplyScalar(1.8)
+    this.baseColor = new THREE.Color(0xe86af0).multiplyScalar(2.9)
     this.coreMaterial = new THREE.MeshBasicMaterial({ color: this.baseColor.clone() })
     this.mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.75), this.coreMaterial)
     this.mesh.position.copy(this.position)
@@ -39,7 +39,7 @@ export class CrystalTower implements Hittable {
     this.beam = new THREE.Line(
       beamGeometry,
       new THREE.LineBasicMaterial({
-        color: new THREE.Color(0xf07af8).multiplyScalar(1.8),
+        color: new THREE.Color(0xf07af8).multiplyScalar(2.9),
         transparent: true,
         opacity: 0.65,
       }),
@@ -53,7 +53,7 @@ export class CrystalTower implements Hittable {
     if (!this.alive) return
     this.hp -= amount
     // Rapid hits must not capture the flash white as the restore color.
-    this.coreMaterial.color.setRGB(2.2, 2.2, 2.2)
+    this.coreMaterial.color.setRGB(3.2, 3.2, 3.2)
     setTimeout(() => this.coreMaterial.color.copy(this.baseColor), 90)
     if (this.hp <= 0) this.destroy()
   }

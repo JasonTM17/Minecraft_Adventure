@@ -104,7 +104,7 @@ const mobContext: MobContext = {
 const state = new GameStateMachine()
 const quests = new QuestManager()
 const hud = new Hud(ui, atlas.canvas, inventory)
-const panorama = new MenuPanorama(game.camera, player, state)
+const panorama = new MenuPanorama(game.camera, player, state, world)
 
 const crosshair = document.createElement('div')
 crosshair.className = 'crosshair'
@@ -136,8 +136,15 @@ state.onChange = (next) => {
   heldItem.setVisible(inGame)
   crosshair.style.display = next === 'playing' ? '' : 'none'
   ui.classList.toggle('hide-hud', !inGame)
+  if (next !== 'playing') {
+    // A frozen frame must not keep mining feedback or shake tilt applied.
+    interaction.cancel()
+    cameraFx.settle()
+  }
 }
-// The session opens on the menu, which onChange never saw.
+// The session opens on the menu, which onChange never saw — freeze the
+// simulation too, or idle players get killed behind the title screen.
+game.timeScale = 0
 heldItem.setVisible(false)
 crosshair.style.display = 'none'
 ui.classList.add('hide-hud')
@@ -188,7 +195,10 @@ player.onFootstep = () => {
   else if (below === Block.PLANKS || below === Block.LOG) sfx.footstep('wood')
   else sfx.footstep('stone')
 }
-projectiles.onArrowImpact = () => sfx.arrowHit()
+projectiles.onArrowImpact = (x, y, z) => {
+  const dist = player.position.distanceTo(new THREE.Vector3(x, y, z))
+  if (dist < 30) sfx.arrowHit(Math.max(0.25, 1 - dist / 30))
+}
 player.onDied = (source) => {
   screens.setDeathCause(`Slain by ${source}`)
   sfx.death()
@@ -325,7 +335,9 @@ game.onAlwaysUpdate((dt) => {
   // Chunks stream even on the title/pause screens so the world is ready
   // behind the menu instead of popping in after the first click.
   world.update(player.position.x, player.position.z)
-  WIND.value += dt
+  // Wrap at a common period of the sway frequencies (all multiples of 0.1)
+  // so float32 sin() keeps precision over multi-hour sessions.
+  WIND.value = (WIND.value + dt) % (Math.PI * 20)
   panorama.update(game.elapsed)
   sky.update(dt, player.position, player.eyeInWater)
   hud.update(dt, player, dragon)

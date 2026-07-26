@@ -90,9 +90,10 @@ export class Sfx {
     }
   }
 
-  arrowHit(): void {
-    this.noise(0.06, 1600, 0.2)
-    this.tone(130, 0.05, 'square', 0.14, 85)
+  /** Impact thunk; volume scales down with distance from the player. */
+  arrowHit(volume = 1): void {
+    this.noise(0.06, 1600, 0.2 * volume)
+    this.tone(130, 0.05, 'square', 0.14 * volume, 85)
   }
 
   cricket(): void {

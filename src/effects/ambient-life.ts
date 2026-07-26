@@ -46,7 +46,10 @@ export class AmbientLife {
     if (Math.abs(surface - playerPos.y) > 24) return
 
     if (this.sky.isNight()) {
-      this.effects.firefly(wx, surface + 1.2 + Math.random() * 1.6, wz)
+      // surfaceY sees through water to the seabed — no fireflies in lakes.
+      if (this.world.isDryLand(wx, wz)) {
+        this.effects.firefly(wx, surface + 1.2 + Math.random() * 1.6, wz)
+      }
       return
     }
 

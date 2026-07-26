@@ -26,6 +26,12 @@ export class CameraFx {
     this.trauma = Math.min(1, this.trauma + amount)
   }
 
+  /** Drop residual shake so a frozen frame (pause/death) sits level. */
+  settle(): void {
+    this.trauma = 0
+    this.camera.rotation.z = 0
+  }
+
   update(dt: number): void {
     this.time += dt
     this.trauma = Math.max(0, this.trauma - TRAUMA_DECAY * dt)
