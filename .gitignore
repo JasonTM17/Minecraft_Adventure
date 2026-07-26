@@ -21,6 +21,7 @@ Thumbs.db
 
 # Private planning and local tooling (never committed)
 plans/
+.playwright-mcp/
 .claude/
 .claude-private/
 .private/
