@@ -13,7 +13,7 @@ export interface MobModel {
   armsRaised: boolean
 }
 
-interface FaceTiles {
+export interface FaceTiles {
   px: number
   nx: number
   py: number
@@ -22,12 +22,12 @@ interface FaceTiles {
   nz: number
 }
 
-function uniformTiles(tile: number, front?: number): FaceTiles {
+export function uniformTiles(tile: number, front?: number): FaceTiles {
   return { px: tile, nx: tile, py: tile, ny: tile, pz: tile, nz: front ?? tile }
 }
 
 /** BoxGeometry with each face UV-mapped onto an atlas tile. */
-function tiledBox(w: number, h: number, d: number, tiles: FaceTiles): THREE.BoxGeometry {
+export function tiledBox(w: number, h: number, d: number, tiles: FaceTiles): THREE.BoxGeometry {
   const geometry = new THREE.BoxGeometry(w, h, d)
   const uv = geometry.getAttribute('uv') as THREE.BufferAttribute
   const order = [tiles.px, tiles.nx, tiles.py, tiles.ny, tiles.pz, tiles.nz]

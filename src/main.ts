@@ -10,6 +10,7 @@ import { MobSpawner } from './entities/mob-spawner'
 import { Pickups } from './entities/pickups'
 import type { MobContext } from './entities/mob'
 import { BlockInteraction } from './player/block-interaction'
+import { HeldItemView } from './player/held-item-view'
 import { Inventory } from './player/inventory'
 import { PlayerController } from './player/player-controller'
 import { buildAtlas } from './world/texture-atlas'
@@ -53,6 +54,8 @@ const mobContext: MobContext = {
   shootArrow: (origin, dir) => projectiles.spawnArrow(origin, dir, 'mob', 22),
 }
 
+const heldItem = new HeldItemView(game.camera, inventory, atlas.texture)
+
 const crosshair = document.createElement('div')
 crosshair.className = 'crosshair'
 ui.appendChild(crosshair)
@@ -80,6 +83,7 @@ game.onUpdate((dt) => {
   const wheel = input.consumeWheel()
   if (wheel !== 0) inventory.scroll(wheel)
 
+  heldItem.update(dt, player, combat, interaction)
   world.update(player.position.x, player.position.z)
   input.endFrame()
 })

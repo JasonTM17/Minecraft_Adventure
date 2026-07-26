@@ -33,6 +33,8 @@ export class Game {
       0.1,
       1000,
     )
+    // Parent the camera so camera-attached objects (held item) render.
+    this.scene.add(this.camera)
 
     window.addEventListener('resize', () => {
       this.camera.aspect = window.innerWidth / window.innerHeight
