@@ -8,7 +8,8 @@ Single-page browser game. No backend — all state lives in the running page. Vi
 main.ts ─────────────── composition root: builds every system, owns the frame loop wiring
 │
 ├── core/
-│   ├── game.ts               renderer + scene + camera + rAF loop, dt clamp, timeScale pause
+│   ├── game.ts               renderer + composer (ACES tone mapping, bloom, output pass),
+│   │                         scene + camera + rAF loop, dt clamp, timeScale pause
 │   ├── game-state.ts         MENU / PLAYING / PAUSED / DEAD / VICTORY transitions
 │   ├── input-manager.ts      keyboard/mouse/pointer-lock state with per-frame edge events
 │   └── math-utils.ts         clamp/lerp, mulberry32 PRNG, avalanche hash2i
@@ -22,7 +23,10 @@ main.ts ─────────────── composition root: builds e
 │   │                         separate opaque/cutout/water geometries, cross-quad plants
 │   ├── world.ts              chunk streaming (gen budget 3, mesh budget 2 per frame),
 │   │                         cross-chunk getBlock/setBlock, unload + dispose
-│   ├── texture-atlas.ts      256×256 canvas atlas painted at startup (terrain, deco, icons)
+│   ├── block-edit-store.ts   player-edit diff map re-applied after chunk regen,
+│   │                         debounced localStorage persistence keyed by seed
+│   ├── texture-atlas.ts      256×256 canvas atlas painted at startup (terrain, deco,
+│   │                         icons, break-crack stages)
 │   ├── mob-skin-tiles.ts     creature skin + face tiles
 │   └── texture-tile-helpers.ts  pixel/noise/pattern draw primitives
 │
@@ -52,12 +56,18 @@ main.ts ─────────────── composition root: builds e
 │   └── fire-zones.ts         lingering ground fire with burn damage
 │
 ├── effects/
-│   ├── sky.ts                keyframed day/night colors, sun/moon/stars, fog, underwater
+│   ├── sky.ts                keyframed day/night colors, sun/moon, fog, underwater override
+│   ├── sky-dome.ts           gradient dome shader w/ sun glow, drifting procedural clouds,
+│   │                         per-star twinkle shader
+│   ├── wind-uniform.ts       shared wind clock injected into cutout/water vertex shaders
+│   ├── camera-effects.ts     trauma-based camera shake + sprint FOV kick
+│   ├── ambient-life.ts       firefly / falling-leaf / bubble spawn timers
 │   └── particles.ts          2×1024 ring-buffer pools (normal + additive), shader points
 │
 ├── adventure/quest-manager.ts   hunt → travel (compass) → crystals → dragon → victory
 ├── ui/hud.ts                    hearts, hotbar (atlas-sliced icons), boss bar, banner, vignette
 ├── ui/screens.ts                title / pause / death / victory overlays
+├── ui/menu-panorama.ts          aerial orbit camera behind menu/victory screens
 └── audio/sfx.ts                 all-synthesized WebAudio effects (tones + filtered noise)
 ```
 
@@ -65,14 +75,17 @@ main.ts ─────────────── composition root: builds e
 
 1. **Frame loop** (`game.ts`) calls gameplay updates with `dt × timeScale`; sky + HUD update even while paused.
 2. **World streaming**: each frame `world.update(playerX, playerZ)` generates missing chunk data (budget 3) in a ring of radius 7, remeshes dirty chunks (budget 2) whose four neighbors have data, and unloads beyond radius 8. `lair-generator` post-processes any chunk intersecting the lair circle via the `onChunkGenerated` hook.
-3. **Determinism**: terrain is a pure function of `(seed, x, z)` — chunk data regenerates identically after unload. Edits to unloaded chunks are lost by design (no persistence layer).
+3. **Determinism + edits**: terrain is a pure function of `(seed, x, z)` — chunk data regenerates identically after unload. Player edits are recorded as a per-chunk diff (`block-edit-store.ts`) re-applied after regeneration, and serialized to localStorage (debounced 3 s, flushed on tab hide/close) so builds survive page reloads. The store evicts least-recently-touched chunks past 50k edits.
 4. **Physics**: player and all mobs share `moveBody` (axis-separated sweeps with substepping). Ungenerated chunks read as stone so nothing falls through the world edge.
 5. **Combat routing**: melee/arrows hit `Mob` AABBs and `Hittable` spheres (dragon, crystals); hostile projectiles and fire zones call `damagePlayer`, which applies the 0.5 s invulnerability window.
 6. **Events**: block break/place, mob death, crystal destruction and dragon state changes fan out to particles, SFX and the quest manager; the quest chain drives the HUD banner and the victory screen.
 
 ## Rendering Notes
 
+- Post pipeline: `RenderPass → UnrealBloomPass → OutputPass` on an HDR (half-float) composer. ACES filmic tone mapping; bloom threshold 1.45 sits above lit terrain so only HDR-bright sources glow (sun/moon discs, flames, explosions, crystal cores/beams — their colors are multiplied past 1.0 on purpose).
 - One material per pass: opaque, alpha-test cutout (leaves/plants, double-sided), transparent water (no depth write). All three sample the same canvas atlas with nearest filtering.
+- Wind motion is vertex-shader-only (`onBeforeCompile` on the cutout/water materials, shared `uWind` clock): foliage sways in x/z, water ripples in y. Physics and raycasts keep using the undisplaced grid.
+- The sky is a back-side dome shader (zenith→horizon gradient + sun glow) that ignores fog; the horizon color doubles as the fog color so distant terrain blends seamlessly. Clouds are one thresholded-noise plane at y=84 whose texture offset keeps the pattern world-anchored while drifting.
 - Mesher emits chunk-local positions; meshes are placed at chunk origin so float precision stays healthy far from spawn.
 - Particles are two `THREE.Points` draws total; the pool never allocates during play.
 - Shadows are faked: per-face brightness plus 3-sample vertex ambient occlusion darkening corners.

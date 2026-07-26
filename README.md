@@ -9,17 +9,18 @@ Built with **TypeScript + Three.js + Vite**. Every texture is drawn procedurally
 ## Features
 
 - **Infinite voxel world** — seeded terrain streamed in 16×96×16 chunks around the player, with plains, forest, desert and snow biomes, trees, lakes, flowers and tall grass.
-- **Fully destructible** — mine and place blocks with a 9-slot hotbar, DDA raycast targeting and per-block break times.
+- **Fully destructible — and persistent** — mine and place blocks with a 9-slot hotbar, DDA raycast targeting, per-block break times and progressive crack overlays. Your edits survive walking away *and* page reloads (saved per world seed).
+- **Filmic rendering** — ACES tone mapping with an HDR bloom pass: the sun flares through the trees, flames and explosions glow, crystal beams light up the night.
+- **Living atmosphere** — a shader sky dome with sunrise/sunset glow, drifting blocky clouds, twinkling stars, wind-swaying grass and leaves, rippling water, fireflies after dark and falling leaves in the forest.
 - **Living creatures** — pigs, cows, sheep and chickens wander and flee; zombies and skeletons rise at night and burn at dawn.
-- **Combat & survival** — sword melee, chargeable bow with arced arrows, hearts, fall damage, food healing and passive regen.
-- **Day/night cycle** — animated sun, moon and stars with dawn/dusk color grading and matching fog.
+- **Combat & survival** — sword melee, chargeable bow with arced arrows, hearts, fall damage, food healing and passive regen — plus camera shake on hits, a sprint FOV kick and per-surface footsteps.
 - **The Dragon** 🐉 — an articulated boss with flapping wings, banking flight, swoop attacks, explosive fireballs and a flame-breath strafing run that leaves burning ground behind. Four healing crystals shield it — destroy them first.
-- **Adventure quest chain** — hunt → find the lair (with compass) → destroy the crystals → slay the dragon → victory.
+- **Adventure quest chain** — hunt → find the lair (with compass) → destroy the crystals → slay the dragon → victory, all framed by a live world panorama on the title screen.
 - **Procedural everything** — texture atlas painted at startup, sound effects synthesized live, no downloads.
 
 | | |
 |---|---|
-| ![Title](docs/screenshots/title-screen.jpeg) | ![Forest](docs/screenshots/forest-biome.jpeg) |
+| ![Title](docs/screenshots/title-screen.jpeg) | ![Sunset](docs/screenshots/sunset-golden-hour.jpeg) |
 | ![Lair](docs/screenshots/dragon-lair-crystals.jpeg) | ![Dragon fire](docs/screenshots/dragon-flame-breath.jpeg) |
 
 ## Controls
@@ -80,7 +81,7 @@ src/
 └── audio/       synthesized sound effects
 ```
 
-Key techniques: face-culled chunk meshing with per-vertex ambient occlusion, Amanatides–Woo voxel raycasting, axis-separated AABB physics shared by the player and every mob, a ring-buffer particle pool (one draw call per blend mode), and a hierarchical box-model dragon rig animated procedurally.
+Key techniques: face-culled chunk meshing with per-vertex ambient occlusion, Amanatides–Woo voxel raycasting, axis-separated AABB physics shared by the player and every mob, an ACES + HDR-bloom post pipeline, vertex-shader wind injected into the chunk materials, a per-chunk edit diff persisted to localStorage, a ring-buffer particle pool (one draw call per blend mode), and a hierarchical box-model dragon rig animated procedurally.
 
 See [docs/system-architecture.md](docs/system-architecture.md) for the full breakdown.
 
