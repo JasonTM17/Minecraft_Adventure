@@ -24,6 +24,7 @@ import { HeldItemView } from './player/held-item-view'
 import { Inventory } from './player/inventory'
 import { PlayerController } from './player/player-controller'
 import { Hud } from './ui/hud'
+import { MenuPanorama } from './ui/menu-panorama'
 import { Screens } from './ui/screens'
 import { Block } from './world/block-registry'
 import { applyLairToChunk } from './world/lair-generator'
@@ -100,6 +101,7 @@ const mobContext: MobContext = {
 const state = new GameStateMachine()
 const quests = new QuestManager()
 const hud = new Hud(ui, atlas.canvas, inventory)
+const panorama = new MenuPanorama(game.camera, player, state)
 
 const crosshair = document.createElement('div')
 crosshair.className = 'crosshair'
@@ -126,7 +128,16 @@ state.onChange = (next) => {
   screens.show(next === 'playing' ? null : next)
   // Unlocked fallback mode still needs clicks + mouse-look while playing.
   input.captureUnlocked = next === 'playing' && !input.locked
+  // First-person widgets have no place over the aerial menu panorama.
+  const inGame = next === 'playing' || next === 'paused' || next === 'dead'
+  heldItem.setVisible(inGame)
+  crosshair.style.display = next === 'playing' ? '' : 'none'
+  ui.classList.toggle('hide-hud', !inGame)
 }
+// The session opens on the menu, which onChange never saw.
+heldItem.setVisible(false)
+crosshair.style.display = 'none'
+ui.classList.add('hide-hud')
 
 input.onLockChange = (locked) => {
   if (locked) {
@@ -312,6 +323,7 @@ game.onAlwaysUpdate((dt) => {
   // behind the menu instead of popping in after the first click.
   world.update(player.position.x, player.position.z)
   WIND.value += dt
+  panorama.update(game.elapsed)
   sky.update(dt, player.position, player.eyeInWater)
   hud.update(dt, player, dragon)
   hud.setQuestText(quests.bannerText(player.position), quests.showCompass())

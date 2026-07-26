@@ -59,24 +59,40 @@ body {
   align-items: center;
   justify-content: center;
   gap: 18px;
-  background: rgba(8, 10, 22, 0.82);
+  /* Translucent so the live world panorama shows through. */
+  background: radial-gradient(
+    ellipse at center,
+    rgba(8, 10, 22, 0.38) 0%,
+    rgba(8, 10, 22, 0.72) 100%
+  );
   color: #eee;
   text-align: center;
+  animation: screen-fade-in 0.35s ease-out;
+}
+
+@keyframes screen-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .game-title {
   font-size: clamp(40px, 7vw, 76px);
   letter-spacing: 4px;
-  color: #7ec850;
-  text-shadow: 3px 3px 0 #2c4a1c, 6px 6px 0 rgba(0, 0, 0, 0.5);
+  color: #8ed858;
+  text-shadow:
+    3px 3px 0 #2c4a1c,
+    6px 6px 0 rgba(0, 0, 0, 0.55),
+    0 0 34px rgba(126, 200, 80, 0.45);
   line-height: 1.05;
 }
 
 .game-title span {
   display: block;
   font-size: 0.52em;
-  color: #f0a838;
-  text-shadow: 3px 3px 0 #6a4a10;
+  color: #ffbe4a;
+  text-shadow:
+    3px 3px 0 #6a4a10,
+    0 0 28px rgba(240, 168, 56, 0.5);
 }
 
 .tagline {
@@ -114,15 +130,28 @@ body {
   background: linear-gradient(#7ec850, #558834);
   box-shadow: 0 4px 0 #2c4a1c;
   font-family: inherit;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 
 .screen button:hover {
   filter: brightness(1.12);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 #2c4a1c,
+    0 0 22px rgba(126, 200, 80, 0.55);
 }
 
 .screen button:active {
   transform: translateY(2px);
   box-shadow: 0 2px 0 #2c4a1c;
+}
+
+.controls-table td {
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.tagline {
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
 .death-title {
@@ -154,6 +183,11 @@ body {
   inset: 0;
 }
 
+/* The aerial menu/victory panorama shows a clean world, no HUD widgets. */
+#ui.hide-hud .hud {
+  display: none;
+}
+
 .vignette {
   position: absolute;
   inset: 0;
@@ -176,6 +210,21 @@ body {
   height: 32px;
   image-rendering: pixelated;
   position: relative;
+}
+
+/* Whole row throbs while HP is critical. */
+.hearts.low .heart {
+  animation: heartbeat 0.85s ease-in-out infinite;
+}
+
+.hearts.low .heart:nth-child(2n) {
+  animation-delay: 0.12s;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(1.18); }
+  45% { transform: scale(0.96); }
 }
 
 .heart-fill {
@@ -256,8 +305,30 @@ body {
   height: 100%;
   width: 100%;
   border-radius: 7px;
-  background: linear-gradient(#f070d0, #a030a0);
+  background: linear-gradient(#f884dc, #a030a0);
+  box-shadow: 0 0 14px rgba(232, 106, 240, 0.65) inset, 0 0 10px rgba(232, 106, 240, 0.4);
   transition: width 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Slow shine sweep across the remaining dragon health. */
+.boss-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: boss-shine 2.6s linear infinite;
+}
+
+@keyframes boss-shine {
+  to { transform: translateX(100%); }
 }
 
 .quest-banner {
@@ -275,6 +346,16 @@ body {
   font-size: 15px;
   font-weight: 600;
   text-shadow: 1px 1px 0 #000;
+}
+
+.quest-banner-pop {
+  animation: banner-pop 0.5s ease-out;
+}
+
+@keyframes banner-pop {
+  0% { transform: translateX(-14px) scale(0.96); opacity: 0.2; }
+  60% { transform: translateX(3px) scale(1.03); opacity: 1; }
+  100% { transform: none; }
 }
 
 .compass {

@@ -11,6 +11,8 @@ const ICON_PX = 16
 export class Hud {
   private readonly root: HTMLDivElement
   private readonly hearts: HTMLDivElement[] = []
+  private heartsRow!: HTMLDivElement
+  private lastBannerText = ''
   private readonly hotbarSlots: Array<{ icon: HTMLDivElement; count: HTMLSpanElement; el: HTMLDivElement }> = []
   private readonly bossBar: HTMLDivElement
   private readonly bossFill: HTMLDivElement
@@ -34,7 +36,8 @@ export class Hud {
 
     this.vignette = this.div('vignette')
 
-    const heartsRow = this.div('hearts')
+    this.heartsRow = this.div('hearts')
+    const heartsRow = this.heartsRow
     for (let i = 0; i < 10; i++) {
       const heart = document.createElement('div')
       heart.className = 'heart'
@@ -98,7 +101,14 @@ export class Hud {
   }
 
   setQuestText(text: string, showCompass: boolean): void {
-    this.bannerText.textContent = text
+    if (text !== this.lastBannerText) {
+      this.lastBannerText = text
+      this.bannerText.textContent = text
+      // Restart the pop animation so quest changes catch the eye.
+      this.banner.classList.remove('quest-banner-pop')
+      void this.banner.offsetWidth
+      this.banner.classList.add('quest-banner-pop')
+    }
     this.compass.style.display = showCompass ? 'inline-block' : 'none'
   }
 
@@ -109,6 +119,7 @@ export class Hud {
       const heartHp = hp - i * 2
       fill.style.width = heartHp >= 2 ? '100%' : heartHp >= 1 ? '50%' : '0%'
     })
+    this.heartsRow.classList.toggle('low', hp > 0 && hp <= 6)
 
     if (this.hotbarDirty) {
       this.hotbarDirty = false

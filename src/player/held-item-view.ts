@@ -19,6 +19,11 @@ export class HeldItemView {
   private bobPhase = 0
   private breakSwingPhase = 0
 
+  /** Hidden on menu/victory screens so the panorama shows a clean world. */
+  setVisible(visible: boolean): void {
+    this.group.visible = visible
+  }
+
   constructor(
     camera: THREE.PerspectiveCamera,
     private readonly inventory: Inventory,
