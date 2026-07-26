@@ -34,12 +34,11 @@ export function mulberry32(seed: number): () => number {
 
 /** Deterministic hash of an integer 2D coordinate + seed to [0, 1). */
 export function hash2i(x: number, y: number, seed: number): number {
-  let h = seed >>> 0
-  h = Math.imul(h ^ (x | 0), 0x85ebca6b)
-  h = Math.imul(h ^ (y | 0), 0xc2b2ae35)
+  let h = (seed >>> 0) ^ Math.imul(x | 0, 0x27d4eb2d) ^ Math.imul(y | 0, 0x165667b1)
+  h = Math.imul(h ^ (h >>> 15), 0x85ebca6b)
   h ^= h >>> 13
-  h = Math.imul(h, 0x27d4eb2f)
-  h ^= h >>> 15
+  h = Math.imul(h, 0xc2b2ae35)
+  h ^= h >>> 16
   return (h >>> 0) / 4294967296
 }
 

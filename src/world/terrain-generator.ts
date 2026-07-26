@@ -35,15 +35,23 @@ export class TerrainGenerator {
     return 'plains'
   }
 
-  /** Tree at this world column, or null. Deterministic, biome-driven density. */
+  /**
+   * Tree at this world column, or null. One candidate position per 5×5 cell
+   * keeps trunks spaced apart and avoids hash-correlation stripes.
+   */
   private treeAt(wx: number, wz: number): TreeInfo | null {
+    const cellX = Math.floor(wx / 5)
+    const cellZ = Math.floor(wz / 5)
+    const px = cellX * 5 + Math.floor(hash2i(cellX, cellZ, this.seed + 61) * 5)
+    const pz = cellZ * 5 + Math.floor(hash2i(cellX, cellZ, this.seed + 67) * 5)
+    if (px !== wx || pz !== wz) return null
+
     const groundY = this.heightAt(wx, wz)
     if (groundY <= SEA_LEVEL + 1) return null
     const biome = this.biomeAt(wx, wz)
-    const density = biome === 'forest' ? 0.02 : biome === 'plains' ? 0.004 : biome === 'snow' ? 0.006 : 0
+    const density = biome === 'forest' ? 0.5 : biome === 'plains' ? 0.1 : biome === 'snow' ? 0.15 : 0
     if (density === 0) return null
-    const roll = hash2i(wx, wz, this.seed + 51)
-    if (roll >= density) return null
+    if (hash2i(cellX, cellZ, this.seed + 51) >= density) return null
     const trunkHeight = 4 + Math.floor(hash2i(wx, wz, this.seed + 77) * 3)
     return { trunkHeight, groundY }
   }
