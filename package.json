@@ -1,7 +1,7 @@
 {
   "name": "minecraft-adventure",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Browser voxel adventure game with an infinite procedural world, living creatures and a fire-breathing dragon boss",
   "author": "Nguyen Tien Son <jasonbmt06@gmail.com>",
