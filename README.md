@@ -90,7 +90,7 @@ src/
 
 Key techniques: face-culled chunk meshing with per-vertex ambient occlusion, Amanatides–Woo voxel raycasting, axis-separated AABB physics shared by the player and every mob, an ACES + HDR-bloom post pipeline, vertex-shader wind injected into the chunk materials, a per-chunk edit diff persisted to localStorage, a ring-buffer particle pool (one draw call per blend mode), and a hierarchical box-model dragon rig animated procedurally.
 
-See [docs/system-architecture.md](docs/system-architecture.md) for the full breakdown.
+More docs: [architecture](docs/system-architecture.md) · [codebase summary](docs/codebase-summary.md) · [code standards](docs/code-standards.md) · [deployment guide](docs/deployment-guide.md) · [roadmap](docs/project-roadmap.md) · [decision records](docs/adr/) · [changelog](CHANGELOG.md) · [contributing](CONTRIBUTING.md)
 
 ## License
 
