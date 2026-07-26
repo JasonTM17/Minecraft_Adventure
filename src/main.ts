@@ -13,6 +13,7 @@ import { BlockInteraction } from './player/block-interaction'
 import { HeldItemView } from './player/held-item-view'
 import { Inventory } from './player/inventory'
 import { PlayerController } from './player/player-controller'
+import { applyLairToChunk } from './world/lair-generator'
 import { buildAtlas } from './world/texture-atlas'
 import { TerrainGenerator } from './world/terrain-generator'
 import { World } from './world/world'
@@ -30,6 +31,7 @@ game.scene.fog = new THREE.Fog(0x87b8e8, 60, 150)
 const atlas = buildAtlas()
 const terrain = new TerrainGenerator(WORLD_SEED)
 const world = new World(game.scene, terrain, atlas)
+world.onChunkGenerated = (chunk) => applyLairToChunk(chunk)
 const sky = new Sky(game.scene)
 const effects = new ParticleEffects(game.scene)
 
