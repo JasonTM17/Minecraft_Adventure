@@ -49,6 +49,8 @@ export class PlayerController implements PhysicsBody {
     this.hp = this.maxHp
     this.invulnerable = 0
     this.timeSinceDamage = 999
+    this.peakFallSpeed = 0
+    this.onGround = false
   }
 
   get eyePosition(): THREE.Vector3 {
