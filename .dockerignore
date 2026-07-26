@@ -1,0 +1,13 @@
+node_modules
+dist
+plans
+docs
+.claude
+.claude-private
+.codex
+.opencode
+.git
+.gitignore
+*.md
+.env*
+opencode.json
