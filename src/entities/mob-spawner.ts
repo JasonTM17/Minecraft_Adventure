@@ -15,6 +15,8 @@ const SPECIES_POOL: readonly PassiveSpecies[] = ['pig', 'pig', 'cow', 'cow', 'sh
 /** Keeps the world populated: day animals, night monsters, drops on death. */
 export class MobSpawner {
   readonly mobs: Mob[] = []
+  /** Fired when a mob actually dies (not despawn/burn cleanup). */
+  onMobKilled: ((mob: Mob) => void) | null = null
   private spawnTimer = 0
 
   constructor(
@@ -50,6 +52,7 @@ export class MobSpawner {
     for (let s = 0; s < 10; s++) {
       ctx.effects.smoke(mob.position.x, mob.position.y + 0.5, mob.position.z)
     }
+    if (!mob.despawning) this.onMobKilled?.(mob)
     if (mob instanceof PassiveMob && !mob.despawning) {
       for (let d = 0; d < mob.meatDrop; d++) {
         this.pickups.spawn(
