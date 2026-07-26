@@ -75,6 +75,8 @@ export class BlockInteraction {
   private breakKey = ''
   private breakProgress = 0
   currentHit: VoxelHit | null = null
+  /** Set by combat for a moment after a melee hit lands. */
+  suppressed = false
   onBlockBroken: ((x: number, y: number, z: number, id: number) => void) | null = null
   onBlockPlaced: ((x: number, y: number, z: number, id: number) => void) | null = null
 
@@ -95,6 +97,11 @@ export class BlockInteraction {
     scene.add(this.highlight)
   }
 
+  /** True while actively mining a block (drives the held-item swing loop). */
+  get isBreaking(): boolean {
+    return this.breakKey !== ''
+  }
+
   update(dt: number): void {
     const dir = this.camera.getWorldDirection(new THREE.Vector3())
     const hit = raycastVoxel(this.world, this.player.eyePosition, dir, REACH)
@@ -109,7 +116,7 @@ export class BlockInteraction {
     this.highlight.visible = true
     this.highlight.position.set(hit.x + 0.5, hit.y + 0.5, hit.z + 0.5)
 
-    if (this.input.isButtonDown(0)) this.advanceBreaking(hit, dt)
+    if (this.input.isButtonDown(0) && !this.suppressed) this.advanceBreaking(hit, dt)
     else this.resetBreaking()
 
     if (this.input.wasClicked(2)) this.tryPlace(hit)

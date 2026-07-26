@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import './style.css'
+import { CombatSystem } from './combat/combat-system'
+import { Projectiles } from './combat/projectiles'
 import { Game } from './core/game'
 import { InputManager } from './core/input-manager'
 import { ParticleEffects } from './effects/particles'
@@ -41,12 +43,14 @@ interaction.onBlockBroken = (x, y, z, id) => effects.blockBreak(x, y, z, id)
 
 const pickups = new Pickups(game.scene, atlas.texture)
 const spawner = new MobSpawner(game.scene, world, atlas.texture, pickups)
+const projectiles = new Projectiles(game.scene, world, effects)
+const combat = new CombatSystem(player, game.camera, input, inventory, projectiles, effects)
 const mobContext: MobContext = {
   playerPosition: player.position,
   isNight: false,
   effects,
   damagePlayer: (amount, source) => player.damage(amount, source),
-  shootArrow: null,
+  shootArrow: (origin, dir) => projectiles.spawnArrow(origin, dir, 'mob', 22),
 }
 
 const crosshair = document.createElement('div')
@@ -55,12 +59,20 @@ ui.appendChild(crosshair)
 
 game.onUpdate((dt) => {
   player.update(dt)
+  combat.update(dt, spawner.mobs)
+  interaction.suppressed = combat.suppressBreaking > 0
   interaction.update(dt)
   effects.update(dt)
 
   mobContext.isNight = sky.isNight()
   spawner.update(dt, mobContext)
   pickups.update(dt, player.position, () => inventory.addFood(1))
+  projectiles.update(dt, {
+    player,
+    mobs: spawner.mobs,
+    hittables: combat.hittables,
+    damagePlayer: mobContext.damagePlayer,
+  })
 
   for (let i = 1; i <= 9; i++) {
     if (input.wasPressed(`Digit${i}`)) inventory.select(i - 1)
