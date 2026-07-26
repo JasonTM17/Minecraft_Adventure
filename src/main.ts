@@ -108,19 +108,28 @@ state.onChange = (next) => {
 }
 
 input.onLockChange = (locked) => {
-  if (locked) state.set('playing')
-  else if (state.state === 'playing') state.set('paused')
+  if (locked) {
+    lockRetries = 0
+    state.set('playing')
+  } else if (state.state === 'playing') {
+    state.set('paused')
+  }
 }
 
 // Browsers can refuse pointer lock (embedded contexts, or Chrome's cooldown
 // right after an exit). Enter unlocked play immediately so input keeps
-// working, then retry the lock once — if it succeeds, locked mode resumes.
+// working, then retry the lock once per user action — environments where the
+// lock never succeeds must not loop retries forever.
+let lockRetries = 0
 document.addEventListener('pointerlockerror', () => {
   if (state.state !== 'playing') state.set('playing')
   input.captureUnlocked = true
-  window.setTimeout(() => {
-    if (state.state === 'playing' && !input.locked) input.requestLock()
-  }, 1600)
+  if (lockRetries < 1) {
+    lockRetries++
+    window.setTimeout(() => {
+      if (state.state === 'playing' && !input.locked) input.requestLock()
+    }, 1600)
+  }
 })
 
 player.onDamaged = () => {
