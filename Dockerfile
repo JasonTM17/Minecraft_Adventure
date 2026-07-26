@@ -12,9 +12,11 @@ RUN npm run build
 
 # Runtime stage: unprivileged nginx serving the static bundle.
 FROM nginxinc/nginx-unprivileged:1.27-alpine
+ARG GIT_SHA=dev
 LABEL org.opencontainers.image.title="minecraft-adventure" \
       org.opencontainers.image.description="Browser voxel adventure game with a fire-breathing dragon boss" \
-      org.opencontainers.image.licenses="MIT"
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.revision="${GIT_SHA}"
 COPY --from=builder /app/dist /usr/share/nginx/html
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
