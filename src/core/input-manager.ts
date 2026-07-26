@@ -11,7 +11,16 @@ export class InputManager {
   private mouseDY = 0
   wheelDelta = 0
   locked = false
+  /**
+   * When pointer lock is unavailable (some embedded browsers), gameplay still
+   * needs clicks and mouse motion; the game sets this while actively playing.
+   */
+  captureUnlocked = false
   onLockChange: ((locked: boolean) => void) | null = null
+
+  private get capturing(): boolean {
+    return this.locked || this.captureUnlocked
+  }
 
   constructor(private readonly lockTarget: HTMLElement) {
     document.addEventListener('keydown', (e) => {
@@ -29,7 +38,7 @@ export class InputManager {
     document.addEventListener('mousedown', (e) => {
       if (e.button >= 0 && e.button < 3) {
         this.buttons[e.button] = true
-        if (this.locked) this.clicked[e.button] = true
+        if (this.capturing) this.clicked[e.button] = true
       }
     })
     document.addEventListener('mouseup', (e) => {
@@ -41,7 +50,7 @@ export class InputManager {
     })
 
     document.addEventListener('mousemove', (e) => {
-      if (this.locked) {
+      if (this.capturing) {
         this.mouseDX += e.movementX
         this.mouseDY += e.movementY
       }

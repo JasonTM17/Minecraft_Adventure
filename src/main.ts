@@ -103,6 +103,8 @@ screens.show('menu')
 state.onChange = (next) => {
   game.timeScale = next === 'playing' ? 1 : 0
   screens.show(next === 'playing' ? null : next)
+  // Unlocked fallback mode still needs clicks + mouse-look while playing.
+  input.captureUnlocked = next === 'playing' && !input.locked
 }
 
 input.onLockChange = (locked) => {
@@ -110,12 +112,15 @@ input.onLockChange = (locked) => {
   else if (state.state === 'playing') state.set('paused')
 }
 
-// Some embedded/headless browsers refuse pointer lock; play unlocked instead
-// (keyboard still works, mouse look is limited).
+// Browsers can refuse pointer lock (embedded contexts, or Chrome's cooldown
+// right after an exit). Enter unlocked play immediately so input keeps
+// working, then retry the lock once — if it succeeds, locked mode resumes.
 document.addEventListener('pointerlockerror', () => {
-  if (state.state === 'menu' || state.state === 'paused' || state.state === 'dead' || state.state === 'victory') {
-    state.set('playing')
-  }
+  if (state.state !== 'playing') state.set('playing')
+  input.captureUnlocked = true
+  window.setTimeout(() => {
+    if (state.state === 'playing' && !input.locked) input.requestLock()
+  }, 1600)
 })
 
 player.onDamaged = () => {
@@ -173,8 +178,11 @@ quests.onCompleted = () => {
     `Time: ${minutes}m ${seconds}s · Creatures slain: ${stats.kills}`,
   )
   window.setTimeout(() => {
-    state.set('victory')
-    input.exitLock()
+    // The player may have died to lingering fire during the celebration delay.
+    if (state.state === 'playing') {
+      state.set('victory')
+      input.exitLock()
+    }
   }, 1800)
 }
 
@@ -232,11 +240,13 @@ game.onUpdate((dt) => {
   if (input.wasPressed('Escape') && !input.locked) state.set('paused')
 
   heldItem.update(dt, player, combat, interaction)
-  world.update(player.position.x, player.position.z)
   input.endFrame()
 })
 
 game.onAlwaysUpdate((dt) => {
+  // Chunks stream even on the title/pause screens so the world is ready
+  // behind the menu instead of popping in after the first click.
+  world.update(player.position.x, player.position.z)
   sky.update(dt, player.position, player.eyeInWater)
   hud.update(dt, player, dragon)
   hud.setQuestText(quests.bannerText(player.position), quests.showCompass())
