@@ -10,6 +10,7 @@ import { GameStateMachine } from './core/game-state'
 import { InputManager } from './core/input-manager'
 import { ParticleEffects } from './effects/particles'
 import { Sky } from './effects/sky'
+import { WIND } from './effects/wind-uniform'
 import { CrystalManager } from './entities/crystal-towers'
 import { DragonBoss } from './entities/dragon-boss'
 import { MobSpawner } from './entities/mob-spawner'
@@ -256,6 +257,7 @@ game.onAlwaysUpdate((dt) => {
   // Chunks stream even on the title/pause screens so the world is ready
   // behind the menu instead of popping in after the first click.
   world.update(player.position.x, player.position.z)
+  WIND.value += dt
   sky.update(dt, player.position, player.eyeInWater)
   hud.update(dt, player, dragon)
   hud.setQuestText(quests.bannerText(player.position), quests.showCompass())

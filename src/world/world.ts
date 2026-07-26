@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { injectWindSway } from '../effects/wind-uniform'
 import { Block, blockDef, isSolid } from './block-registry'
 import { CHUNK_SIZE, Chunk, WORLD_HEIGHT } from './chunk'
 import { buildChunkGeometry, type VoxelSource } from './chunk-mesher'
@@ -44,6 +45,8 @@ export class World implements VoxelSource {
       opacity: 0.72,
       depthWrite: false,
     })
+    injectWindSway(this.cutoutMaterial, 'foliage')
+    injectWindSway(this.waterMaterial, 'water')
     scene.add(this.group)
   }
 
