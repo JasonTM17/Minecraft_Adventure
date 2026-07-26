@@ -31,8 +31,8 @@ export class PlayerController implements PhysicsBody {
   invulnerable = 0
   /** Seconds since last damage, drives passive regen. */
   timeSinceDamage = 0
-  /** Downward speed at the moment of the last landing (for fall damage). */
-  lastImpactSpeed = 0
+  /** Peak downward speed while airborne; converted to damage on landing. */
+  private peakFallSpeed = 0
   onDamaged: ((amount: number, source: string) => void) | null = null
   onDied: ((source: string) => void) | null = null
 
@@ -65,10 +65,18 @@ export class PlayerController implements PhysicsBody {
     this.eyeInWater = isEyeInWater(this.world, this, EYE_HEIGHT)
     this.move(dt)
 
+    const wasGrounded = this.onGround
     const fallingSpeed = -this.velocity.y
     moveBody(this.world, this, dt)
-    if (this.onGround && fallingSpeed > 0) this.lastImpactSpeed = fallingSpeed
-    else if (!this.onGround) this.lastImpactSpeed = 0
+    if (!this.onGround) {
+      this.peakFallSpeed = Math.max(this.peakFallSpeed, fallingSpeed)
+      if (this.inWater) this.peakFallSpeed = 0
+    } else {
+      if (!wasGrounded && this.peakFallSpeed > 14 && !this.inWater) {
+        this.damage(Math.ceil((this.peakFallSpeed - 13) * 0.7), 'fall')
+      }
+      this.peakFallSpeed = 0
+    }
 
     this.invulnerable = Math.max(0, this.invulnerable - dt)
     this.timeSinceDamage += dt
