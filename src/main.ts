@@ -4,6 +4,9 @@ import { Game } from './core/game'
 import { InputManager } from './core/input-manager'
 import { ParticleEffects } from './effects/particles'
 import { Sky } from './effects/sky'
+import { MobSpawner } from './entities/mob-spawner'
+import { Pickups } from './entities/pickups'
+import type { MobContext } from './entities/mob'
 import { BlockInteraction } from './player/block-interaction'
 import { Inventory } from './player/inventory'
 import { PlayerController } from './player/player-controller'
@@ -36,6 +39,16 @@ player.spawnAt(8, 8)
 const interaction = new BlockInteraction(world, game.camera, input, player, inventory, game.scene)
 interaction.onBlockBroken = (x, y, z, id) => effects.blockBreak(x, y, z, id)
 
+const pickups = new Pickups(game.scene, atlas.texture)
+const spawner = new MobSpawner(game.scene, world, atlas.texture, pickups)
+const mobContext: MobContext = {
+  playerPosition: player.position,
+  isNight: false,
+  effects,
+  damagePlayer: (amount, source) => player.damage(amount, source),
+  shootArrow: null,
+}
+
 const crosshair = document.createElement('div')
 crosshair.className = 'crosshair'
 ui.appendChild(crosshair)
@@ -44,6 +57,10 @@ game.onUpdate((dt) => {
   player.update(dt)
   interaction.update(dt)
   effects.update(dt)
+
+  mobContext.isNight = sky.isNight()
+  spawner.update(dt, mobContext)
+  pickups.update(dt, player.position, () => inventory.addFood(1))
 
   for (let i = 1; i <= 9; i++) {
     if (input.wasPressed(`Digit${i}`)) inventory.select(i - 1)
