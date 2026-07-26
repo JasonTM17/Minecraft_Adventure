@@ -1,0 +1,23 @@
+{
+  "name": "minecraft-adventure",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Browser voxel adventure game with an infinite procedural world, living creatures and a fire-breathing dragon boss",
+  "author": "Nguyen Tien Son <jasonbmt06@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.5"
+  }
+}
