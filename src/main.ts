@@ -8,6 +8,7 @@ import { Projectiles } from './combat/projectiles'
 import { Game } from './core/game'
 import { GameStateMachine } from './core/game-state'
 import { InputManager } from './core/input-manager'
+import { AmbientLife } from './effects/ambient-life'
 import { CameraFx } from './effects/camera-effects'
 import { ParticleEffects } from './effects/particles'
 import { Sky } from './effects/sky'
@@ -50,6 +51,7 @@ const world = new World(game.scene, terrain, atlas)
 world.onChunkGenerated = (chunk) => applyLairToChunk(chunk)
 const sky = new Sky(game.scene)
 const effects = new ParticleEffects(game.scene)
+const ambientLife = new AmbientLife(world, terrain, sky, effects)
 const sfx = new Sfx()
 
 const input = new InputManager(game.renderer.domElement)
@@ -250,6 +252,7 @@ game.onUpdate((dt) => {
   interaction.suppressed = combat.suppressBreaking > 0
   interaction.update(dt)
   effects.update(dt)
+  ambientLife.update(dt, player.position, player.eyeInWater)
 
   mobContext.isNight = sky.isNight()
   spawner.update(dt, mobContext)

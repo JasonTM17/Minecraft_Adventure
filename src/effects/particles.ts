@@ -228,6 +228,50 @@ export class ParticleEffects {
     for (let i = 0; i < 18; i++) this.smoke(x, y + 0.4, z)
   }
 
+  /** Slow-drifting warm glow dot; additive so it blooms at night. */
+  firefly(x: number, y: number, z: number): void {
+    this.glow.spawn({
+      x, y, z,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: (Math.random() - 0.3) * 0.35,
+      vz: (Math.random() - 0.5) * 0.7,
+      color: Math.random() > 0.5 ? 0xd8f078 : 0xf0e078,
+      size: 0.55 + Math.random() * 0.35,
+      life: 3.5 + Math.random() * 2.5,
+      gravity: -0.04,
+      drag: 0.12,
+    })
+  }
+
+  /** Leaf fluttering down from a forest canopy. */
+  fallingLeaf(x: number, y: number, z: number): void {
+    this.solid.spawn({
+      x, y, z,
+      vx: (Math.random() - 0.5) * 1.4,
+      vy: -0.3,
+      vz: (Math.random() - 0.5) * 1.4,
+      color: Math.random() > 0.4 ? 0x3a7927 : 0x6a8a2a,
+      size: 0.6 + Math.random() * 0.35,
+      life: 3.5 + Math.random() * 2,
+      gravity: 0.55,
+      drag: 1.1,
+    })
+  }
+
+  /** Air bubble rising while the camera is underwater. */
+  bubble(x: number, y: number, z: number): void {
+    this.solid.spawn({
+      x, y, z,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: 0.8 + Math.random() * 0.7,
+      vz: (Math.random() - 0.5) * 0.3,
+      color: 0xbfe8ff,
+      size: 0.3 + Math.random() * 0.25,
+      life: 0.9 + Math.random() * 0.6,
+      gravity: -1.2,
+    })
+  }
+
   heal(x: number, y: number, z: number): void {
     for (let i = 0; i < 8; i++) {
       this.glow.spawn({
