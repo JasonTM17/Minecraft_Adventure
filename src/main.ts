@@ -8,6 +8,7 @@ import { Projectiles } from './combat/projectiles'
 import { Game } from './core/game'
 import { GameStateMachine } from './core/game-state'
 import { InputManager } from './core/input-manager'
+import { CameraFx } from './effects/camera-effects'
 import { ParticleEffects } from './effects/particles'
 import { Sky } from './effects/sky'
 import { WIND } from './effects/wind-uniform'
@@ -54,7 +55,16 @@ const input = new InputManager(game.renderer.domElement)
 const inventory = new Inventory()
 const player = new PlayerController(world, game.camera, input)
 player.spawnAt(SPAWN_X, SPAWN_Z)
-const interaction = new BlockInteraction(world, game.camera, input, player, inventory, game.scene)
+const interaction = new BlockInteraction(
+  world,
+  game.camera,
+  input,
+  player,
+  inventory,
+  game.scene,
+  atlas.texture,
+)
+const cameraFx = new CameraFx(game.camera)
 const pickups = new Pickups(game.scene, atlas.texture)
 const spawner = new MobSpawner(game.scene, world, atlas.texture, pickups)
 const projectiles = new Projectiles(game.scene, world, effects)
@@ -65,7 +75,11 @@ const fireZones = new FireZones(world, effects)
 const crystals = new CrystalManager(game.scene, effects)
 const dragon = new DragonBoss(game.scene, atlas.texture, projectiles, fireZones, effects, crystals)
 combat.hittables.push(dragon, ...crystals.crystals)
-projectiles.onFireballExplode = (x, _y, z) => fireZones.igniteBurst(x, z, 4, 5)
+projectiles.onFireballExplode = (x, y, z) => {
+  fireZones.igniteBurst(x, z, 4, 5)
+  const dist = player.position.distanceTo(new THREE.Vector3(x, y, z))
+  if (dist < 20) cameraFx.addShake(Math.max(0.15, 0.7 - dist * 0.03))
+}
 
 const mobContext: MobContext = {
   playerPosition: player.position,
@@ -136,6 +150,10 @@ document.addEventListener('pointerlockerror', () => {
 player.onDamaged = () => {
   sfx.hurt()
   hud.flashDamage()
+  cameraFx.addShake(0.45)
+}
+player.onHardLanding = (speed) => {
+  cameraFx.addShake(Math.min(0.45, (speed - 9) * 0.045))
 }
 player.onDied = (source) => {
   screens.setDeathCause(`Slain by ${source}`)
@@ -170,7 +188,10 @@ for (const crystal of crystals.crystals) {
 }
 
 dragon.events = {
-  onRoar: () => sfx.dragonRoar(),
+  onRoar: () => {
+    sfx.dragonRoar()
+    cameraFx.addShake(0.3)
+  },
   onFireball: () => sfx.fireball(),
   onBreathStart: () => sfx.flameBreath(),
   onDeath: () => {
@@ -204,6 +225,8 @@ game.onUpdate((dt) => {
   stats.playTime += dt
 
   player.update(dt)
+  cameraFx.sprinting = player.sprinting
+  cameraFx.update(dt)
   combat.update(dt, spawner.mobs)
   interaction.suppressed = combat.suppressBreaking > 0
   interaction.update(dt)

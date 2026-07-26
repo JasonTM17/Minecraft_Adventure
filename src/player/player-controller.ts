@@ -33,8 +33,12 @@ export class PlayerController implements PhysicsBody {
   timeSinceDamage = 0
   /** Peak downward speed while airborne; converted to damage on landing. */
   private peakFallSpeed = 0
+  /** True while sprint movement is active; drives the FOV kick. */
+  sprinting = false
   onDamaged: ((amount: number, source: string) => void) | null = null
   onDied: ((source: string) => void) | null = null
+  /** Fired on touchdown with meaningful fall speed (camera thud). */
+  onHardLanding: ((speed: number) => void) | null = null
 
   constructor(
     private readonly world: World,
@@ -74,6 +78,9 @@ export class PlayerController implements PhysicsBody {
       this.peakFallSpeed = Math.max(this.peakFallSpeed, fallingSpeed)
       if (this.inWater) this.peakFallSpeed = 0
     } else {
+      if (!wasGrounded && this.peakFallSpeed > 9 && !this.inWater) {
+        this.onHardLanding?.(this.peakFallSpeed)
+      }
       if (!wasGrounded && this.peakFallSpeed > 14 && !this.inWater) {
         this.damage(Math.ceil((this.peakFallSpeed - 13) * 0.7), 'fall')
       }
@@ -106,8 +113,9 @@ export class PlayerController implements PhysicsBody {
     if (input.isDown('KeyA')) wish.sub(right)
     if (wish.lengthSq() > 0) wish.normalize()
 
-    const sprinting = input.isDown('ShiftLeft') && !this.inWater
-    const maxSpeed = this.inWater ? WATER_SPEED : sprinting ? SPRINT_SPEED : WALK_SPEED
+    const moving = wish.lengthSq() > 0
+    this.sprinting = input.isDown('ShiftLeft') && !this.inWater && moving
+    const maxSpeed = this.inWater ? WATER_SPEED : this.sprinting ? SPRINT_SPEED : WALK_SPEED
     const accel = this.onGround || this.inWater ? GROUND_ACCEL : AIR_ACCEL
 
     const blend = 1 - Math.exp(-accel * dt)

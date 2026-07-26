@@ -41,7 +41,14 @@ export const T = {
   HEART_FULL: 39,
   HEART_EMPTY: 40,
   BEDROCK: 41,
+  CRACK_1: 42,
+  CRACK_2: 43,
+  CRACK_3: 44,
+  CRACK_4: 45,
 } as const
+
+/** Break-progress overlay stages, lightest to most shattered. */
+export const CRACK_TILES = [T.CRACK_1, T.CRACK_2, T.CRACK_3, T.CRACK_4] as const
 
 export interface AtlasResult {
   texture: THREE.CanvasTexture
@@ -266,6 +273,51 @@ function drawDecoAndIconTiles(ctx: CanvasRenderingContext2D, rng: () => number):
   noiseTile(ctx, btx, bty, [60, 60, 60], 25, rng)
 }
 
+/**
+ * Four crack stages sharing the same jagged paths so later stages visibly
+ * extend earlier ones. Own RNG keeps mob/deco tile randomness untouched.
+ */
+function drawCrackTiles(ctx: CanvasRenderingContext2D): void {
+  const rng = mulberry32(4242)
+  const cracks: Array<Array<[number, number]>> = []
+  for (let c = 0; c < 6; c++) {
+    const pts: Array<[number, number]> = []
+    const vertical = c % 2 === 0
+    const forward = c % 4 < 2
+    let x = vertical ? 2 + ((rng() * 12) | 0) : forward ? 0 : 15
+    let y = vertical ? (forward ? 0 : 15) : 2 + ((rng() * 12) | 0)
+    for (let i = 0; i < 14; i++) {
+      pts.push([x, y])
+      if (vertical) {
+        y += forward ? 1 : -1
+        x += ((rng() * 3) | 0) - 1
+      } else {
+        x += forward ? 1 : -1
+        y += ((rng() * 3) | 0) - 1
+      }
+      x = Math.max(0, Math.min(15, x))
+      y = Math.max(0, Math.min(15, y))
+    }
+    cracks.push(pts)
+  }
+
+  const perStage = [2, 3, 5, 6]
+  CRACK_TILES.forEach((tile, stage) => {
+    const tx = tile % ATLAS_GRID
+    const ty = Math.floor(tile / ATLAS_GRID)
+    clearTile(ctx, tx, ty)
+    const count = perStage[stage] as number
+    for (let c = 0; c < count; c++) {
+      for (const [px, py] of cracks[c] as Array<[number, number]>) {
+        pxRect(ctx, tx, ty, px, py, 1, 1, 'rgba(18, 18, 18, 0.85)')
+        if (stage >= 2) {
+          pxRect(ctx, tx, ty, Math.min(15, px + 1), py, 1, 1, 'rgba(30, 30, 30, 0.55)')
+        }
+      }
+    }
+  })
+}
+
 /** Build the full procedural atlas once at startup. */
 export function buildAtlas(seed = 1337): AtlasResult {
   const canvas = document.createElement('canvas')
@@ -278,6 +330,7 @@ export function buildAtlas(seed = 1337): AtlasResult {
   const rng = mulberry32(seed)
   drawTerrainTiles(ctx, rng)
   drawDecoAndIconTiles(ctx, rng)
+  drawCrackTiles(ctx)
   drawMobSkinTiles(ctx, rng)
 
   const texture = new THREE.CanvasTexture(canvas)

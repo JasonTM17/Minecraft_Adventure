@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import type { InputManager } from '../core/input-manager'
 import { Block, blockDef } from '../world/block-registry'
+import { CRACK_TILES, tileUV } from '../world/texture-atlas'
 import type { World } from '../world/world'
 import type { Inventory } from './inventory'
 import type { PlayerController } from './player-controller'
@@ -72,6 +73,9 @@ export function raycastVoxel(
 export class BlockInteraction {
   private readonly highlight: THREE.LineSegments
   private readonly highlightMaterial: THREE.LineBasicMaterial
+  private readonly crackMesh: THREE.Mesh
+  private readonly crackBaseUv: Float32Array
+  private crackStage = -1
   private breakKey = ''
   private breakProgress = 0
   currentHit: VoxelHit | null = null
@@ -87,6 +91,7 @@ export class BlockInteraction {
     private readonly player: PlayerController,
     private readonly inventory: Inventory,
     scene: THREE.Scene,
+    atlasTexture: THREE.Texture,
   ) {
     this.highlightMaterial = new THREE.LineBasicMaterial({ color: 0x111111 })
     this.highlight = new THREE.LineSegments(
@@ -95,6 +100,39 @@ export class BlockInteraction {
     )
     this.highlight.visible = false
     scene.add(this.highlight)
+
+    // Slightly oversized shell showing the crack stage while mining.
+    const crackGeometry = new THREE.BoxGeometry(1.004, 1.004, 1.004)
+    this.crackBaseUv = new Float32Array(
+      (crackGeometry.getAttribute('uv') as THREE.BufferAttribute).array,
+    )
+    this.crackMesh = new THREE.Mesh(
+      crackGeometry,
+      new THREE.MeshBasicMaterial({
+        map: atlasTexture,
+        alphaTest: 0.4,
+        polygonOffset: true,
+        polygonOffsetFactor: -2,
+        polygonOffsetUnits: -2,
+      }),
+    )
+    this.crackMesh.visible = false
+    scene.add(this.crackMesh)
+  }
+
+  /** Remap the box UVs onto one crack tile of the shared atlas. */
+  private setCrackStage(stage: number): void {
+    if (stage === this.crackStage) return
+    this.crackStage = stage
+    const tile = CRACK_TILES[Math.max(0, Math.min(CRACK_TILES.length - 1, stage))] as number
+    const [u0, v0, u1, v1] = tileUV(tile)
+    const uv = this.crackMesh.geometry.getAttribute('uv') as THREE.BufferAttribute
+    for (let i = 0; i < uv.count; i++) {
+      const u = this.crackBaseUv[i * 2] as number
+      const v = this.crackBaseUv[i * 2 + 1] as number
+      uv.setXY(i, u0 + u * (u1 - u0), v0 + v * (v1 - v0))
+    }
+    uv.needsUpdate = true
   }
 
   /** True while actively mining a block (drives the held-item swing loop). */
@@ -126,6 +164,8 @@ export class BlockInteraction {
     this.breakKey = ''
     this.breakProgress = 0
     this.highlightMaterial.color.setHex(0x111111)
+    this.crackMesh.visible = false
+    this.crackStage = -1
   }
 
   private advanceBreaking(hit: VoxelHit, dt: number): void {
@@ -142,6 +182,10 @@ export class BlockInteraction {
     this.breakProgress += dt / def.breakTime
     // Highlight heats from dark to orange as the break progresses.
     this.highlightMaterial.color.setHSL(0.08, 1, Math.min(0.55, this.breakProgress * 0.55))
+
+    this.crackMesh.visible = true
+    this.crackMesh.position.set(hit.x + 0.5, hit.y + 0.5, hit.z + 0.5)
+    this.setCrackStage(Math.min(3, Math.floor(this.breakProgress * 4)))
 
     if (this.breakProgress >= 1) {
       this.world.setBlock(hit.x, hit.y, hit.z, Block.AIR)
