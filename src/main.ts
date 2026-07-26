@@ -110,6 +110,14 @@ input.onLockChange = (locked) => {
   else if (state.state === 'playing') state.set('paused')
 }
 
+// Some embedded/headless browsers refuse pointer lock; play unlocked instead
+// (keyboard still works, mouse look is limited).
+document.addEventListener('pointerlockerror', () => {
+  if (state.state === 'menu' || state.state === 'paused' || state.state === 'dead' || state.state === 'victory') {
+    state.set('playing')
+  }
+})
+
 player.onDamaged = () => {
   sfx.hurt()
   hud.flashDamage()
@@ -219,6 +227,9 @@ game.onUpdate((dt) => {
   const wheel = input.consumeWheel()
   if (wheel !== 0) inventory.scroll(wheel)
   if (input.wasPressed('KeyM')) sfx.toggleMute()
+  // Esc pauses in unlocked fallback mode (with pointer lock the browser
+  // exits the lock first and onLockChange handles the pause).
+  if (input.wasPressed('Escape') && !input.locked) state.set('paused')
 
   heldItem.update(dt, player, combat, interaction)
   world.update(player.position.x, player.position.z)
