@@ -1,38 +1,61 @@
 import * as THREE from 'three'
 import './style.css'
 import { Game } from './core/game'
-import { buildAtlas, tileUV, T } from './world/texture-atlas'
+import { InputManager } from './core/input-manager'
+import { clamp } from './core/math-utils'
+import { buildAtlas } from './world/texture-atlas'
+import { TerrainGenerator } from './world/terrain-generator'
+import { World } from './world/world'
 
-// Temporary bootstrap: proves the engine loop and atlas render correctly.
-// Replaced by the full world bootstrap as systems come online.
+// Temporary fly-camera preview over the streaming terrain.
+// The full player controller replaces this bootstrap next.
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) throw new Error('Missing #app mount point')
 
+const WORLD_SEED = 20260726
+
 const game = new Game(app)
 game.scene.background = new THREE.Color(0x87b8e8)
+game.scene.fog = new THREE.Fog(0x87b8e8, 60, 150)
 
 const atlas = buildAtlas()
-const material = new THREE.MeshLambertMaterial({ map: atlas.texture })
+const terrain = new TerrainGenerator(WORLD_SEED)
+const world = new World(game.scene, terrain, atlas)
 
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const [u0, v0, u1, v1] = tileUV(T.GRASS_SIDE)
-const uvAttr = geometry.getAttribute('uv') as THREE.BufferAttribute
-for (let i = 0; i < uvAttr.count; i++) {
-  uvAttr.setXY(i, uvAttr.getX(i) < 0.5 ? u0 : u1, uvAttr.getY(i) < 0.5 ? v0 : v1)
-}
-uvAttr.needsUpdate = true
+const sun = new THREE.DirectionalLight(0xffffff, 2.0)
+sun.position.set(0.6, 1, 0.35)
+game.scene.add(sun, new THREE.AmbientLight(0xb8c8e8, 1.4))
 
-const cube = new THREE.Mesh(geometry, material)
-game.scene.add(cube)
+const input = new InputManager(game.renderer.domElement)
+game.renderer.domElement.addEventListener('click', () => input.requestLock())
 
-const sun = new THREE.DirectionalLight(0xffffff, 2.2)
-sun.position.set(3, 5, 2)
-game.scene.add(sun, new THREE.AmbientLight(0xa0b0d0, 1.2))
+let yaw = 0
+let pitch = -0.4
+game.camera.position.set(8, terrain.heightAt(8, 8) + 24, 8)
 
-game.camera.position.set(0, 0.6, 2.4)
-game.camera.lookAt(0, 0, 0)
 game.onUpdate((dt) => {
-  cube.rotation.y += dt * 0.8
-  cube.rotation.x += dt * 0.3
+  const [mx, my] = input.consumeMouseDelta()
+  yaw -= mx * 0.0022
+  pitch = clamp(pitch - my * 0.0022, -1.55, 1.55)
+  game.camera.rotation.set(pitch, yaw, 0, 'YXZ')
+
+  const speed = input.isDown('ShiftLeft') ? 60 : 24
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))
+  const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw))
+  const move = new THREE.Vector3()
+  if (input.isDown('KeyW')) move.add(forward)
+  if (input.isDown('KeyS')) move.sub(forward)
+  if (input.isDown('KeyD')) move.add(right)
+  if (input.isDown('KeyA')) move.sub(right)
+  if (input.isDown('Space')) move.y += 1
+  if (input.isDown('ControlLeft')) move.y -= 1
+  if (move.lengthSq() > 0) {
+    move.normalize().multiplyScalar(speed * dt)
+    game.camera.position.add(move)
+  }
+
+  world.update(game.camera.position.x, game.camera.position.z)
+  input.endFrame()
 })
+
 game.start()
