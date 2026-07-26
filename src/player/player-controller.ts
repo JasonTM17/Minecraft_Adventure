@@ -39,6 +39,9 @@ export class PlayerController implements PhysicsBody {
   onDied: ((source: string) => void) | null = null
   /** Fired on touchdown with meaningful fall speed (camera thud). */
   onHardLanding: ((speed: number) => void) | null = null
+  /** Fired every couple meters of grounded travel (footstep sounds). */
+  onFootstep: (() => void) | null = null
+  private walkedSinceStep = 0
 
   constructor(
     private readonly world: World,
@@ -85,6 +88,17 @@ export class PlayerController implements PhysicsBody {
         this.damage(Math.ceil((this.peakFallSpeed - 13) * 0.7), 'fall')
       }
       this.peakFallSpeed = 0
+    }
+
+    // Footstep cadence: distance-driven so sprinting steps faster.
+    if (this.onGround && !this.inWater) {
+      this.walkedSinceStep += Math.hypot(this.velocity.x, this.velocity.z) * dt
+      if (this.walkedSinceStep > 2.1) {
+        this.walkedSinceStep = 0
+        this.onFootstep?.()
+      }
+    } else {
+      this.walkedSinceStep = 0
     }
 
     this.invulnerable = Math.max(0, this.invulnerable - dt)

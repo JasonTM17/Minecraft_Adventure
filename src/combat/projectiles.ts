@@ -42,6 +42,8 @@ export class Projectiles {
   private readonly list: Projectile[] = []
   /** Dragon fireballs scorch the ground where they land. */
   onFireballExplode: ((x: number, y: number, z: number) => void) | null = null
+  /** Any arrow striking terrain, a mob or the player (impact thunk sound). */
+  onArrowImpact: ((x: number, y: number, z: number) => void) | null = null
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -115,8 +117,12 @@ export class Projectiles {
   private collide(index: number, p: Projectile, targets: ProjectileTargets): boolean {
     // Voxel hit.
     if (isSolid(this.world.getBlock(Math.floor(p.pos.x), Math.floor(p.pos.y), Math.floor(p.pos.z)))) {
-      if (p.kind === 'fireball') this.explode(p, targets)
-      else this.effects.smoke(p.pos.x, p.pos.y, p.pos.z)
+      if (p.kind === 'fireball') {
+        this.explode(p, targets)
+      } else {
+        this.effects.smoke(p.pos.x, p.pos.y, p.pos.z)
+        this.onArrowImpact?.(p.pos.x, p.pos.y, p.pos.z)
+      }
       this.remove(index)
       return true
     }
@@ -134,6 +140,7 @@ export class Projectiles {
           this.explode(p, targets)
         } else {
           targets.damagePlayer(ARROW_DAMAGE_TO_PLAYER, 'arrow')
+          this.onArrowImpact?.(p.pos.x, p.pos.y, p.pos.z)
         }
         this.remove(index)
         return true
@@ -152,6 +159,7 @@ export class Projectiles {
         ) {
           const dir = p.vel.clone().setY(0).normalize()
           mob.damage(ARROW_DAMAGE_TO_MOB, dir)
+          this.onArrowImpact?.(p.pos.x, p.pos.y, p.pos.z)
           this.remove(index)
           return true
         }

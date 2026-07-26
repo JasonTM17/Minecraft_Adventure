@@ -24,6 +24,7 @@ import { Inventory } from './player/inventory'
 import { PlayerController } from './player/player-controller'
 import { Hud } from './ui/hud'
 import { Screens } from './ui/screens'
+import { Block } from './world/block-registry'
 import { applyLairToChunk } from './world/lair-generator'
 import { buildAtlas } from './world/texture-atlas'
 import { TerrainGenerator } from './world/terrain-generator'
@@ -86,7 +87,10 @@ const mobContext: MobContext = {
   isNight: false,
   effects,
   damagePlayer: (amount, source) => player.damage(amount, source),
-  shootArrow: (origin, dir) => projectiles.spawnArrow(origin, dir, 'mob', 22),
+  shootArrow: (origin, dir) => {
+    projectiles.spawnArrow(origin, dir, 'mob', 22)
+    sfx.bowShoot()
+  },
 }
 
 // --- Adventure flow, UI, audio ---------------------------------------------
@@ -155,6 +159,20 @@ player.onDamaged = () => {
 player.onHardLanding = (speed) => {
   cameraFx.addShake(Math.min(0.45, (speed - 9) * 0.045))
 }
+player.onFootstep = () => {
+  const below = world.getBlock(
+    Math.floor(player.position.x),
+    Math.floor(player.position.y - 0.1),
+    Math.floor(player.position.z),
+  )
+  if (below === Block.GRASS || below === Block.DIRT || below === Block.LEAVES) {
+    sfx.footstep('grass')
+  } else if (below === Block.SAND) sfx.footstep('sand')
+  else if (below === Block.SNOW) sfx.footstep('snow')
+  else if (below === Block.PLANKS || below === Block.LOG) sfx.footstep('wood')
+  else sfx.footstep('stone')
+}
+projectiles.onArrowImpact = () => sfx.arrowHit()
 player.onDied = (source) => {
   screens.setDeathCause(`Slain by ${source}`)
   sfx.death()
@@ -220,6 +238,7 @@ quests.onCompleted = () => {
 // --- Frame loop -------------------------------------------------------------
 
 let ambientTimer = 4
+let natureTimer = 7
 
 game.onUpdate((dt) => {
   stats.playTime += dt
@@ -260,6 +279,15 @@ game.onUpdate((dt) => {
     const mob = nearby[Math.floor(Math.random() * nearby.length)]
     if (mob instanceof PassiveMob) sfx.mobCall(mob.species)
     else if (mob) sfx.zombieGroan()
+  }
+
+  // Quiet nature bed: crickets at night, birdsong by day, occasional wind.
+  natureTimer -= dt
+  if (natureTimer <= 0) {
+    natureTimer = 6 + Math.random() * 8
+    if (Math.random() < 0.18) sfx.wind()
+    else if (sky.isNight()) sfx.cricket()
+    else if (sky.lightLevel() > 0.6) sfx.bird()
   }
 
   for (let i = 1; i <= 9; i++) {

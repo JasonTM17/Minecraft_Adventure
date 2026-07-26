@@ -76,6 +76,38 @@ export class Sfx {
     this.noise(0.1, 900, 0.25)
   }
 
+  /** Short surface-specific scuff, called every couple meters of walking. */
+  footstep(kind: 'grass' | 'sand' | 'stone' | 'wood' | 'snow'): void {
+    const jitter = 0.85 + Math.random() * 0.3
+    if (kind === 'grass') this.noise(0.06 * jitter, 800, 0.1)
+    else if (kind === 'sand') this.noise(0.08 * jitter, 1300, 0.09)
+    else if (kind === 'snow') this.noise(0.09 * jitter, 450, 0.1)
+    else if (kind === 'wood') {
+      this.tone(150 * jitter, 0.05, 'square', 0.09, 95)
+      this.noise(0.04, 600, 0.06)
+    } else {
+      this.noise(0.045 * jitter, 2200, 0.11)
+    }
+  }
+
+  arrowHit(): void {
+    this.noise(0.06, 1600, 0.2)
+    this.tone(130, 0.05, 'square', 0.14, 85)
+  }
+
+  cricket(): void {
+    for (let i = 0; i < 3; i++) this.tone(4300, 0.03, 'sine', 0.045, 4100, i * 0.08)
+  }
+
+  bird(): void {
+    this.tone(1900, 0.11, 'sine', 0.06, 2500)
+    this.tone(2300, 0.09, 'sine', 0.05, 1700, 0.16)
+  }
+
+  wind(): void {
+    this.noise(1.6, 280, 0.055)
+  }
+
   place(): void {
     this.tone(170, 0.09, 'square', 0.22, 120)
   }
