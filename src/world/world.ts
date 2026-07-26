@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { injectWindSway } from '../effects/wind-uniform'
+import type { BlockEditStore } from './block-edit-store'
 import { Block, blockDef, isSolid } from './block-registry'
 import { CHUNK_SIZE, Chunk, WORLD_HEIGHT } from './chunk'
 import { buildChunkGeometry, type VoxelSource } from './chunk-mesher'
@@ -30,6 +31,7 @@ export class World implements VoxelSource {
     scene: THREE.Scene,
     readonly terrain: TerrainGenerator,
     atlas: AtlasResult,
+    private readonly editStore: BlockEditStore,
   ) {
     this.opaqueMaterial = new THREE.MeshLambertMaterial({ map: atlas.texture, vertexColors: true })
     this.cutoutMaterial = new THREE.MeshLambertMaterial({
@@ -74,6 +76,7 @@ export class World implements VoxelSource {
     const lx = wx - cx * CHUNK_SIZE
     const lz = wz - cz * CHUNK_SIZE
     chunk.set(lx, wy, lz, id)
+    this.editStore.record(Chunk.key(cx, cz), lx, wy, lz, id)
     chunk.dirty = true
     if (lx === 0) this.markDirty(cx - 1, cz)
     if (lx === CHUNK_SIZE - 1) this.markDirty(cx + 1, cz)
@@ -132,6 +135,8 @@ export class World implements VoxelSource {
       const chunk = new Chunk(m.cx, m.cz)
       this.terrain.fillChunk(chunk)
       this.onChunkGenerated?.(chunk)
+      // Player edits win over terrain AND structures (lair) on regeneration.
+      this.editStore.applyTo(chunk)
       this.chunks.set(Chunk.key(m.cx, m.cz), chunk)
       // Fresh data affects neighbor border faces — and corner-vertex AO
       // samples diagonally, so diagonal neighbors need a remesh too.

@@ -26,6 +26,7 @@ import { PlayerController } from './player/player-controller'
 import { Hud } from './ui/hud'
 import { MenuPanorama } from './ui/menu-panorama'
 import { Screens } from './ui/screens'
+import { BlockEditStore } from './world/block-edit-store'
 import { Block } from './world/block-registry'
 import { applyLairToChunk } from './world/lair-generator'
 import { buildAtlas } from './world/texture-atlas'
@@ -48,7 +49,9 @@ game.scene.fog = new THREE.Fog(0x87b8e8, 60, 150)
 
 const atlas = buildAtlas()
 const terrain = new TerrainGenerator(WORLD_SEED)
-const world = new World(game.scene, terrain, atlas)
+const editStore = new BlockEditStore(`mcadv-edits-${WORLD_SEED}`)
+editStore.load()
+const world = new World(game.scene, terrain, atlas, editStore)
 world.onChunkGenerated = (chunk) => applyLairToChunk(chunk)
 const sky = new Sky(game.scene)
 const effects = new ParticleEffects(game.scene)
@@ -328,6 +331,12 @@ game.onAlwaysUpdate((dt) => {
   hud.update(dt, player, dragon)
   hud.setQuestText(quests.bannerText(player.position), quests.showCompass())
 })
+
+// Flush pending block edits when the tab hides or closes.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') editStore.save()
+})
+window.addEventListener('beforeunload', () => editStore.save())
 
 game.start()
 
