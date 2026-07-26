@@ -68,7 +68,15 @@ export class HeldItemView {
     if (key === this.lastKey) return
     this.lastKey = key
 
-    if (this.current) this.group.remove(this.current)
+    if (this.current) {
+      this.group.remove(this.current)
+      const mesh = this.current as THREE.Mesh
+      mesh.geometry.dispose()
+      // Sprites share spriteMaterial; block cubes own a per-mesh material.
+      if (mesh.material !== this.spriteMaterial) {
+        ;(mesh.material as THREE.Material).dispose()
+      }
+    }
     this.current = null
     if (slot.kind === 'block' && (slot.count ?? 0) <= 0) return
 

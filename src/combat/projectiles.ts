@@ -37,10 +37,10 @@ export interface ProjectileTargets {
   damagePlayer: (amount: number, source: string) => void
 }
 
-/** Pooled arrows and fireballs with voxel + entity collision. */
+/** Active arrows and fireballs with voxel + entity collision. */
 export class Projectiles {
   private readonly list: Projectile[] = []
-  /** Phase hook: dragon fireballs scorch the ground where they land. */
+  /** Dragon fireballs scorch the ground where they land. */
   onFireballExplode: ((x: number, y: number, z: number) => void) | null = null
 
   constructor(
@@ -179,6 +179,9 @@ export class Projectiles {
   private remove(index: number): void {
     const p = this.list[index] as Projectile
     this.scene.remove(p.mesh)
+    const mesh = p.mesh as THREE.Mesh
+    mesh.geometry.dispose()
+    ;(mesh.material as THREE.Material).dispose()
     this.list.splice(index, 1)
   }
 }

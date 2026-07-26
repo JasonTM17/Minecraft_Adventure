@@ -1,4 +1,4 @@
-import type * as THREE from 'three'
+import * as THREE from 'three'
 import type { World } from '../world/world'
 import { Skeleton, Zombie } from './hostile-mobs'
 import type { Mob, MobContext } from './mob'
@@ -68,6 +68,11 @@ export class MobSpawner {
   private remove(index: number): void {
     const mob = this.mobs[index] as Mob
     this.scene.remove(mob.group)
+    // Each mob owns its geometries and one material; free the GPU buffers.
+    mob.group.traverse((obj) => {
+      if (obj instanceof THREE.Mesh) obj.geometry.dispose()
+    })
+    mob.model.material.dispose()
     this.mobs.splice(index, 1)
   }
 

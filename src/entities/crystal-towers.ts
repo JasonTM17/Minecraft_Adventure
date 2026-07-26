@@ -59,6 +59,9 @@ export class CrystalTower implements Hittable {
     this.effects.explosion(this.position.x, this.position.y, this.position.z, 1.2)
     this.scene.remove(this.mesh, this.beam)
     this.mesh.geometry.dispose()
+    this.coreMaterial.dispose()
+    this.beam.geometry.dispose()
+    ;(this.beam.material as THREE.Material).dispose()
     this.onDestroyed?.()
   }
 
