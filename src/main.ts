@@ -108,3 +108,15 @@ game.onAlwaysUpdate((dt) => {
 })
 
 game.start()
+
+// Dev-only console hooks for manual testing (stripped from production builds).
+if (import.meta.env.DEV) {
+  Object.assign(window as unknown as Record<string, unknown>, {
+    __debug: {
+      player,
+      dragon,
+      sky,
+      teleport: (x: number, z: number) => player.spawnAt(x, z),
+    },
+  })
+}
