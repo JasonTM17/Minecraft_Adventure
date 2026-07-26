@@ -2,15 +2,16 @@ import * as THREE from 'three'
 import './style.css'
 import { Game } from './core/game'
 import { InputManager } from './core/input-manager'
-import { clamp } from './core/math-utils'
+import { BlockInteraction } from './player/block-interaction'
+import { Inventory } from './player/inventory'
+import { PlayerController } from './player/player-controller'
 import { buildAtlas } from './world/texture-atlas'
 import { TerrainGenerator } from './world/terrain-generator'
 import { World } from './world/world'
 
-// Temporary fly-camera preview over the streaming terrain.
-// The full player controller replaces this bootstrap next.
 const app = document.querySelector<HTMLDivElement>('#app')
-if (!app) throw new Error('Missing #app mount point')
+const ui = document.querySelector<HTMLDivElement>('#ui')
+if (!app || !ui) throw new Error('Missing #app/#ui mount points')
 
 const WORLD_SEED = 20260726
 
@@ -29,32 +30,26 @@ game.scene.add(sun, new THREE.AmbientLight(0xb8c8e8, 1.4))
 const input = new InputManager(game.renderer.domElement)
 game.renderer.domElement.addEventListener('click', () => input.requestLock())
 
-let yaw = 0
-let pitch = -0.4
-game.camera.position.set(8, terrain.heightAt(8, 8) + 24, 8)
+const inventory = new Inventory()
+const player = new PlayerController(world, game.camera, input)
+player.spawnAt(8, 8)
+const interaction = new BlockInteraction(world, game.camera, input, player, inventory, game.scene)
+
+const crosshair = document.createElement('div')
+crosshair.className = 'crosshair'
+ui.appendChild(crosshair)
 
 game.onUpdate((dt) => {
-  const [mx, my] = input.consumeMouseDelta()
-  yaw -= mx * 0.0022
-  pitch = clamp(pitch - my * 0.0022, -1.55, 1.55)
-  game.camera.rotation.set(pitch, yaw, 0, 'YXZ')
+  player.update(dt)
+  interaction.update(dt)
 
-  const speed = input.isDown('ShiftLeft') ? 60 : 24
-  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))
-  const right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw))
-  const move = new THREE.Vector3()
-  if (input.isDown('KeyW')) move.add(forward)
-  if (input.isDown('KeyS')) move.sub(forward)
-  if (input.isDown('KeyD')) move.add(right)
-  if (input.isDown('KeyA')) move.sub(right)
-  if (input.isDown('Space')) move.y += 1
-  if (input.isDown('ControlLeft')) move.y -= 1
-  if (move.lengthSq() > 0) {
-    move.normalize().multiplyScalar(speed * dt)
-    game.camera.position.add(move)
+  for (let i = 1; i <= 9; i++) {
+    if (input.wasPressed(`Digit${i}`)) inventory.select(i - 1)
   }
+  const wheel = input.consumeWheel()
+  if (wheel !== 0) inventory.scroll(wheel)
 
-  world.update(game.camera.position.x, game.camera.position.z)
+  world.update(player.position.x, player.position.z)
   input.endFrame()
 })
 
