@@ -69,6 +69,12 @@ Run the published image straight from Docker Hub:
 docker run -p 8080:8080 nguyenson1710/minecraft-adventure-web   # http://localhost:8080
 ```
 
+Or pull the same image from GitHub Container Registry:
+
+```bash
+docker run -p 8080:8080 ghcr.io/jasontm17/minecraft-adventure-web
+```
+
 Or build locally:
 
 ```bash

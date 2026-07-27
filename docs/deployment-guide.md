@@ -43,11 +43,11 @@ The lockfile is authored on Windows and omits Linux-only optional dependencies o
 | Workflow | Trigger | Does |
 |---|---|---|
 | `ci.yml` | push/PR to main | install → typecheck → test → lint → build, uploads `dist/` artifact |
-| `docker-publish.yml` | push to main | buildx amd64+arm64 → `nguyenson1710/minecraft-adventure-web:latest` + `:<sha>` |
+| `docker-publish.yml` | push to main | buildx amd64+arm64 → Docker Hub `nguyenson1710/minecraft-adventure-web:latest` + `:<sha>` AND GitHub Container Registry `ghcr.io/jasontm17/minecraft-adventure-web:latest` + `:<sha>` |
 | `codeql.yml` | push/PR + weekly | SAST for JS/TS |
 | `trivy.yml` | push/PR | CRITICAL/HIGH scan of the filesystem and built image |
 
-`docker-publish` needs two repository secrets: `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (Settings → Secrets and variables → Actions). Without them the job is skipped, everything else stays green.
+`docker-publish` needs two repository secrets: `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` (Settings → Secrets and variables → Actions). Without them the Docker Hub push is skipped. The GitHub Container Registry (ghcr.io) push uses the automatic `GITHUB_TOKEN` (granted `packages: write` in the workflow), so it needs no extra secret — the image appears on the repo's Packages tab.
 
 ## Runtime state
 
