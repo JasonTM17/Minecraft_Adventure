@@ -7,21 +7,29 @@ export class Sfx {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
   muted = false
+  /** Master volume gain (0..1); applied to the master bus when not muted. */
+  private volume = 0.45
 
   /** Must be called from a user gesture (autoplay policy). */
   unlock(): void {
     if (!this.ctx) {
       this.ctx = new AudioContext()
       this.master = this.ctx.createGain()
-      this.master.gain.value = 0.45
+      this.master.gain.value = this.muted ? 0 : this.volume
       this.master.connect(this.ctx.destination)
     }
     void this.ctx.resume()
   }
 
+  /** Set the master volume gain; respected immediately when not muted. */
+  setVolume(v: number): void {
+    this.volume = v
+    if (this.master) this.master.gain.value = this.muted ? 0 : v
+  }
+
   toggleMute(): boolean {
     this.muted = !this.muted
-    if (this.master) this.master.gain.value = this.muted ? 0 : 0.45
+    if (this.master) this.master.gain.value = this.muted ? 0 : this.volume
     return this.muted
   }
 

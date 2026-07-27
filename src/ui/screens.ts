@@ -4,6 +4,7 @@ export interface ScreenCallbacks {
   onResume: () => void
   onRespawn: () => void
   onPlayAgain: () => void
+  onOpenSettings: () => void
 }
 
 const CONTROLS_HTML = `
@@ -36,6 +37,7 @@ export class Screens {
       <p class="tagline">Explore an endless world. Survive the night.<br/>Find the lair. Slay the fire dragon.</p>
       ${CONTROLS_HTML}
       <button data-action="play">▶ &nbsp;Play</button>
+      <button class="button-secondary" data-action="settings">⚙ &nbsp;Settings</button>
       `,
     )
     this.build(
@@ -44,6 +46,7 @@ export class Screens {
       <h2>Paused</h2>
       ${CONTROLS_HTML}
       <button data-action="resume">Resume</button>
+      <button class="button-secondary" data-action="settings">⚙ &nbsp;Settings</button>
       `,
     )
     this.build(
@@ -71,6 +74,7 @@ export class Screens {
       else if (action === 'resume') callbacks.onResume()
       else if (action === 'respawn') callbacks.onRespawn()
       else if (action === 'playagain') callbacks.onPlayAgain()
+      else if (action === 'settings') callbacks.onOpenSettings()
     })
   }
 

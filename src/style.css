@@ -363,3 +363,106 @@ body {
   color: #f05030;
   font-size: 20px;
 }
+
+/* ---------- Settings panel ---------- */
+
+/* Secondary (stone-grey) action button — less prominent than the green CTA. */
+.screen button.button-secondary {
+  font-size: 17px;
+  padding: 9px 32px;
+  background: linear-gradient(#8a8f98, #5c6068);
+  box-shadow: 0 4px 0 #2a2d33;
+}
+
+.screen button.button-secondary:hover {
+  box-shadow:
+    0 6px 0 #2a2d33,
+    0 0 22px rgba(180, 190, 205, 0.4);
+}
+
+.screen button.button-secondary:active {
+  box-shadow: 0 2px 0 #2a2d33;
+}
+
+.settings-title {
+  font-size: 40px;
+  color: #f0d060;
+  text-shadow: 3px 3px 0 #6a4a10;
+}
+
+.settings-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(440px, 86vw);
+  margin: 6px 0 10px;
+}
+
+.settings-row {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.settings-label {
+  flex: 0 0 168px;
+  text-align: right;
+  font-size: 16px;
+  font-weight: 600;
+  color: #c9d4e8;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.settings-slider {
+  pointer-events: auto;
+  flex: 1 1 auto;
+  height: 22px;
+  cursor: pointer;
+  appearance: none;
+  background: transparent;
+}
+
+.settings-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(#3a3f48, #20242b);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.settings-slider::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(#3a3f48, #20242b);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.settings-slider::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid #1c1c1c;
+  background: linear-gradient(#7ec850, #558834);
+  box-shadow: 0 2px 0 #2c4a1c;
+}
+
+.settings-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid #1c1c1c;
+  background: linear-gradient(#7ec850, #558834);
+  box-shadow: 0 2px 0 #2c4a1c;
+}
+
+.settings-value {
+  flex: 0 0 52px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f0d060;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}

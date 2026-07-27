@@ -27,6 +27,8 @@ export class PlayerController implements PhysicsBody {
   pitch = 0
   hp = 20
   readonly maxHp = 20
+  /** Multiplier on the base mouse-turn rate; 1 is the default feel. */
+  lookSensitivity = 1
   /** Seconds of invulnerability remaining after a hit. */
   invulnerable = 0
   /** Seconds since last damage, drives passive regen. */
@@ -112,8 +114,9 @@ export class PlayerController implements PhysicsBody {
 
   private look(): void {
     const [mx, my] = this.input.consumeMouseDelta()
-    this.yaw -= mx * 0.0022
-    this.pitch = clamp(this.pitch - my * 0.0022, -1.55, 1.55)
+    const rate = 0.0022 * this.lookSensitivity
+    this.yaw -= mx * rate
+    this.pitch = clamp(this.pitch - my * rate, -1.55, 1.55)
   }
 
   private move(dt: number): void {

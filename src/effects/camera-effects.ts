@@ -15,7 +15,7 @@ export class CameraFx {
   private trauma = 0
   private time = 0
   private sprintLerp = 0
-  private readonly baseFov: number
+  private baseFov: number
 
   constructor(private readonly camera: THREE.PerspectiveCamera) {
     this.baseFov = camera.fov
@@ -30,6 +30,14 @@ export class CameraFx {
   settle(): void {
     this.trauma = 0
     this.camera.rotation.z = 0
+  }
+
+  /** Update the base FOV; the sprint kick is applied on top. Applied live so
+   *  the preview updates while the settings panel is open over a paused game. */
+  setBaseFov(fov: number): void {
+    this.baseFov = fov
+    this.camera.fov = fov + this.sprintLerp * SPRINT_FOV_BOOST
+    this.camera.updateProjectionMatrix()
   }
 
   update(dt: number): void {

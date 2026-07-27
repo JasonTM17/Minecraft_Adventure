@@ -8,6 +8,7 @@ import { Projectiles } from './combat/projectiles'
 import { Game } from './core/game'
 import { GameStateMachine } from './core/game-state'
 import { InputManager } from './core/input-manager'
+import { SettingsStore, type GameSettings } from './core/settings'
 import { AmbientLife } from './effects/ambient-life'
 import { CameraFx } from './effects/camera-effects'
 import { ParticleEffects } from './effects/particles'
@@ -26,6 +27,7 @@ import { PlayerController } from './player/player-controller'
 import { Hud } from './ui/hud'
 import { MenuPanorama } from './ui/menu-panorama'
 import { Screens } from './ui/screens'
+import { SettingsPanel } from './ui/settings-panel'
 import { BlockEditStore } from './world/block-edit-store'
 import { Block } from './world/block-registry'
 import { applyLairToChunk } from './world/lair-generator'
@@ -72,6 +74,17 @@ const interaction = new BlockInteraction(
   atlas.texture,
 )
 const cameraFx = new CameraFx(game.camera)
+
+// Player-tunable settings: load saved preferences and apply them live. Defaults
+// match the pre-settings hardcoded values, so a fresh profile changes nothing.
+const settings = new SettingsStore()
+const applySettings = (s: GameSettings): void => {
+  sfx.setVolume(s.volume)
+  player.lookSensitivity = s.sensitivity
+  cameraFx.setBaseFov(s.fov)
+}
+applySettings(settings.current)
+settings.onChanged = applySettings
 const pickups = new Pickups(game.scene, atlas.texture)
 const spawner = new MobSpawner(game.scene, world, atlas.texture, pickups)
 const projectiles = new Projectiles(game.scene, world, effects)
@@ -112,6 +125,10 @@ ui.appendChild(crosshair)
 
 const stats = { playTime: 0, kills: 0 }
 
+// Declared ahead of Screens so the menu/pause "Settings" button can show it;
+// assigned immediately after Screens exists (its Back button needs screens).
+let settingsPanel: SettingsPanel
+let settingsReturn: 'menu' | 'paused' = 'menu'
 const screens = new Screens(ui, {
   onPlay: () => {
     sfx.unlock()
@@ -123,8 +140,21 @@ const screens = new Screens(ui, {
     input.requestLock()
   },
   onPlayAgain: () => input.requestLock(),
+  onOpenSettings: () => {
+    settingsReturn = state.state === 'paused' ? 'paused' : 'menu'
+    screens.show(null)
+    settingsPanel.show(settings.current)
+  },
 })
 screens.show('menu')
+
+settingsPanel = new SettingsPanel(ui, {
+  onChange: (s) => settings.update(s),
+  onBack: () => {
+    settingsPanel.hide()
+    screens.show(settingsReturn)
+  },
+})
 
 state.onChange = (next) => {
   game.timeScale = next === 'playing' ? 1 : 0
