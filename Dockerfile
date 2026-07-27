@@ -1,5 +1,5 @@
 # Build stage: compile the TypeScript bundle with Vite.
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 # npm install (not ci): the lockfile is authored on Windows and omits the
