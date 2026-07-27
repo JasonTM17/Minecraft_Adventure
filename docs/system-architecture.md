@@ -11,8 +11,10 @@ main.ts ─────────────── composition root: builds e
 │   ├── game.ts               renderer + composer (ACES tone mapping, bloom, output pass),
 │   │                         scene + camera + rAF loop, dt clamp, timeScale pause
 │   ├── game-state.ts         MENU / PLAYING / PAUSED / DEAD / VICTORY transitions
-│   ├── input-manager.ts      keyboard/mouse/pointer-lock state with per-frame edge events
-│   └── math-utils.ts         clamp/lerp, mulberry32 PRNG, avalanche hash2i
+│   ├── input-manager.ts      keyboard/mouse/pointer-lock state with per-frame edge events;
+│   │                         non-passive wheel listener coalescing trackpad bursts
+│   ├── math-utils.ts         clamp/lerp, mulberry32 PRNG, avalanche hash2i
+│   └── settings.ts           volume/sensitivity/FOV model, validated localStorage persistence
 │
 ├── world/
 │   ├── noise.ts              seeded 2D value noise + fBm
@@ -67,6 +69,7 @@ main.ts ─────────────── composition root: builds e
 ├── adventure/quest-manager.ts   hunt → travel (compass) → crystals → dragon → victory
 ├── ui/hud.ts                    hearts, hotbar (atlas-sliced icons), boss bar, banner, vignette
 ├── ui/screens.ts                title / pause / death / victory overlays
+├── ui/settings-panel.ts         volume / sensitivity / FOV sliders (live, persisted)
 ├── ui/menu-panorama.ts          aerial orbit camera behind menu/victory screens
 └── audio/sfx.ts                 all-synthesized WebAudio effects (tones + filtered noise)
 ```

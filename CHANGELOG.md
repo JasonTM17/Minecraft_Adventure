@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.3.0] - 2026-07-27
+
+### Added
+
+- Settings screen (reachable from the title menu and pause screen): master volume, mouse sensitivity and field-of-view sliders. Preferences persist to `localStorage` (`mcadv-settings`) and apply live — volume and FOV update immediately, even while the panel is open over a paused game. Defaults match the previous hardcoded values, so existing players see no change.
+- Hotbar wheel-scroll polish: same-direction trackpad bursts coalesce into one step, quick opposite-direction corrections still register, and the listener is registered non-passive so page scroll is reliably cancelled during play.
+
 ## [0.2.0] - 2026-07-26
 
 ### Added

@@ -10,6 +10,10 @@ Infinite streaming voxel world (4 biomes), mining/building, 6 creature types, co
 
 ACES + HDR bloom pipeline, shader sky dome with clouds and star twinkle, wind-swayed foliage and rippling water, camera shake / sprint FOV / break cracks, per-surface footsteps and nature ambience, fireflies/leaves/bubbles, live title panorama, HUD polish, block-edit persistence across reloads, 52-test unit suite, oxlint gate, full repo bootstrap (CI, ADRs, docs).
 
+### 0.3.0 — Settings & input polish (2026-07-27)
+
+Settings screen (volume / mouse sensitivity / FOV sliders, persisted to localStorage, applied live); hotbar wheel-scroll trackpad coalescing with a non-passive listener. Unit suite grows to 70 tests.
+
 ## Candidate next steps (unscheduled ideas, not commitments)
 
 Gameplay:
@@ -23,7 +27,7 @@ Presentation:
 
 - Biome-specific ambient music beds (synthesized pads, day/night variants)
 - Weather: rain with surface splash particles, snowfall in the snow biome
-- Settings screen: render distance, FOV, sensitivity, volume sliders
+- Settings screen: render-distance slider (volume, sensitivity and FOV sliders shipped in 0.3.0)
 
 Platform:
 

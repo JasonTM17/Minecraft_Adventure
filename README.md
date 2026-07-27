@@ -19,6 +19,7 @@ Built with **TypeScript + Three.js + Vite**. Every texture is drawn procedurally
 - **The Dragon** 🐉 — an articulated boss with flapping wings, banking flight, swoop attacks, explosive fireballs and a flame-breath strafing run that leaves burning ground behind. Four healing crystals shield it — destroy them first.
 - **Adventure quest chain** — hunt → find the lair (with compass) → destroy the crystals → slay the dragon → victory, all framed by a live world panorama on the title screen.
 - **Procedural everything** — texture atlas painted at startup, sound effects synthesized live, no downloads.
+- **Settings** — adjust master volume, mouse sensitivity and field of view from the title menu or pause screen; preferences persist across reloads.
 
 | | |
 |---|---|
@@ -56,7 +57,7 @@ npm run preview
 Tests and lint:
 
 ```bash
-npm test           # vitest unit suite (noise, physics, quests, edit store)
+npm test           # vitest unit suite (70 tests: noise, physics, quests, edit store, inventory, input, settings)
 npm run lint       # oxlint, warnings are errors
 ```
 
