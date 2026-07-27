@@ -3,6 +3,7 @@
  * edge events (pressed this frame) are cleared by endFrame().
  */
 export class InputManager {
+  private static readonly WHEEL_STEP_COOLDOWN_MS = 120
   private readonly keys = new Set<string>()
   private readonly pressed = new Set<string>()
   private readonly buttons = [false, false, false]
@@ -10,6 +11,8 @@ export class InputManager {
   private mouseDX = 0
   private mouseDY = 0
   wheelDelta = 0
+  private lastWheelStepAt = -Infinity
+  private lastWheelDirection = 0
   locked = false
   /**
    * When pointer lock is unavailable (some embedded browsers), gameplay still
@@ -45,9 +48,26 @@ export class InputManager {
       if (e.button >= 0 && e.button < 3) this.buttons[e.button] = false
     })
     document.addEventListener('contextmenu', (e) => e.preventDefault())
-    document.addEventListener('wheel', (e) => {
-      this.wheelDelta += Math.sign(e.deltaY)
-    })
+    document.addEventListener(
+      'wheel',
+      (e) => {
+        if (!this.capturing || e.deltaY === 0) return
+
+        e.preventDefault()
+        const now = performance.now()
+        const direction = Math.sign(e.deltaY)
+        // Trackpads emit several wheel events for one physical gesture. Treat
+        // same-direction bursts as one step, while preserving quick corrections.
+        if (
+          direction === this.lastWheelDirection &&
+          now - this.lastWheelStepAt < InputManager.WHEEL_STEP_COOLDOWN_MS
+        ) return
+        this.wheelDelta = direction
+        this.lastWheelStepAt = now
+        this.lastWheelDirection = direction
+      },
+      { passive: false },
+    )
 
     document.addEventListener('mousemove', (e) => {
       if (this.capturing) {

@@ -41,8 +41,10 @@ export class Inventory {
   }
 
   scroll(steps: number): void {
+    if (!Number.isFinite(steps) || steps === 0) return
     const n = this.slots.length
-    this.select((((this.selected + steps) % n) + n) % n)
+    const direction = Math.sign(steps)
+    this.select((((this.selected + direction) % n) + n) % n)
   }
 
   /** Store a mined block. Unknown block types are silently discarded. */
