@@ -11,7 +11,7 @@ COPY src/ ./src/
 RUN npm run build
 
 # Runtime stage: unprivileged nginx serving the static bundle.
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 ARG GIT_SHA=dev
 LABEL org.opencontainers.image.title="minecraft-adventure" \
       org.opencontainers.image.description="Browser voxel adventure game with a fire-breathing dragon boss" \
