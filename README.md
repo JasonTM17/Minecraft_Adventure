@@ -4,6 +4,8 @@ A Minecraft-inspired voxel adventure that runs entirely in the browser. Explore 
 
 Built with **TypeScript + Three.js + Vite**. Every texture is drawn procedurally on a canvas atlas and every sound is synthesized with WebAudio — the game ships **zero external assets**.
 
+![Title orbit](docs/screenshots/title-orbit.gif)
+
 ![Gameplay](docs/screenshots/gameplay-plains.jpeg)
 
 ## Features
@@ -59,6 +61,14 @@ npm run lint       # oxlint, warnings are errors
 ```
 
 ### Docker
+
+Run the published image straight from Docker Hub:
+
+```bash
+docker run -p 8080:8080 nguyenson1710/minecraft-adventure-web   # http://localhost:8080
+```
+
+Or build locally:
 
 ```bash
 docker compose up --build   # serves the game on http://localhost:8080
