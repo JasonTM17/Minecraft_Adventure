@@ -15,10 +15,10 @@
     "lint": "oxlint --deny-warnings src"
   },
   "dependencies": {
-    "three": "^0.185.1"
+    "three": "^0.186.0"
   },
   "devDependencies": {
-    "@types/three": "^0.185.1",
+    "@types/three": "^0.186.0",
     "oxlint": "^1.75.0",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
